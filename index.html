@@ -837,8 +837,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
     <!-- SINCRONIZACIÓN -->
     <div class="view" id="view-sync">
-      <div style="margin-bottom:18px;"><h2 style="font-family:'DM Serif Display',serif;font-size:1.25rem;">☁️ Sincronización Firebase</h2><p style="font-size:.8rem;color:var(--text-soft);margin-top:2px;">Sincronización automática entre dispositivos</p></div>
-      <div class="card" style="margin-bottom:18px;"><div class="card-body" style="display:flex;align-items:center;gap:14px;">
+      <div style="margin-bottom:18px;"><h2 style="font-family:'DM Serif Display',serif;font-size:1.25rem;">☁️ Sincronización</h2><p style="font-size:.8rem;color:var(--text-soft);margin-top:2px;">Firebase (fichas) + Google Calendar (agenda)</p></div>
+
+      <!-- Firebase status -->
+      <div class="card" style="margin-bottom:14px;"><div class="card-body" style="display:flex;align-items:center;gap:14px;">
         <div id="sync-icon" style="font-size:2.2rem;">☁️</div>
         <div><div style="font-weight:700;font-size:.97rem;" id="sync-status-text">Sin configurar</div><div style="font-size:.8rem;color:var(--text-soft);" id="sync-status-desc">Configure Firebase para activar la sincronización automática</div></div>
         <div style="margin-left:auto;display:flex;gap:7px;flex-wrap:wrap;">
@@ -846,6 +848,93 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
           <button class="btn btn-outline btn-sm" id="sync-now-btn" onclick="syncNow()" style="display:none;">Sincronizar ahora</button>
         </div>
       </div></div>
+
+      <!-- Google Calendar -->
+      <div class="card" style="margin-bottom:14px;border-left:4px solid #4285f4;">
+        <div class="card-head">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:1.4rem;">📆</span>
+            <div>
+              <h3 style="margin:0;">Google Calendar</h3>
+              <div style="font-size:.74rem;color:var(--text-soft);" id="gcal-status-desc">No conectado — tus turnos no están sincronizados</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:7px;flex-wrap:wrap;">
+            <button class="btn btn-outline btn-sm" id="gcal-sync-now-btn" onclick="gcalSyncAll()" style="display:none;">🔄 Sincronizar agenda</button>
+            <button class="btn btn-primary btn-sm" id="gcal-connect-btn" onclick="gcalSetup()">Conectar Google Calendar</button>
+            <button class="btn btn-danger btn-sm" id="gcal-disconnect-btn" onclick="gcalDisconnect()" style="display:none;">Desconectar</button>
+          </div>
+        </div>
+        <div id="gcal-setup-box" style="display:none;padding:14px;border-top:1px solid var(--border-light);">
+          <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px;margin-bottom:12px;font-size:.82rem;line-height:1.7;">
+            <strong>📋 Instrucciones para conectar Google Calendar:</strong><br>
+            <b>1.</b> Ir a <a href="https://console.cloud.google.com" target="_blank" style="color:#1d4ed8;">console.cloud.google.com</a><br>
+            <b>2.</b> Crear proyecto → Habilitar <b>Google Calendar API</b><br>
+            <b>3.</b> Credenciales → <b>Crear credenciales → ID de cliente OAuth 2.0</b><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;• Tipo de aplicación: <b>Aplicación web</b><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;• Orígenes autorizados: <code style="background:#f1f5f9;padding:1px 4px;border-radius:3px;">http://localhost</code> y la URL donde usás la app<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;• URI de redireccionamiento: misma URL<br>
+            <b>4.</b> Copiar el <b>Client ID</b> y pegarlo abajo<br>
+            <b>5.</b> Click en "Conectar con Google" → autorizar acceso al calendario
+          </div>
+          <div class="form-group">
+            <label>Google OAuth Client ID</label>
+            <input id="gcal-client-id" placeholder="123456789-abc123.apps.googleusercontent.com" style="font-family:monospace;font-size:.8rem;">
+          </div>
+          <button class="btn btn-primary" onclick="gcalConnect()" style="width:100%;justify-content:center;margin-top:4px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="margin-right:6px;"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+            Conectar con Google
+          </button>
+        </div>
+        <div id="gcal-info-box" style="display:none;padding:12px 14px;border-top:1px solid var(--border-light);">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;font-size:.82rem;">
+            <div style="flex:1;min-width:150px;">
+              <div style="font-size:.72rem;color:var(--text-soft);font-weight:600;text-transform:uppercase;margin-bottom:3px;">Cuenta conectada</div>
+              <div id="gcal-user-email" style="font-weight:600;">—</div>
+            </div>
+            <div style="flex:1;min-width:150px;">
+              <div style="font-size:.72rem;color:var(--text-soft);font-weight:600;text-transform:uppercase;margin-bottom:3px;">Última sincronización</div>
+              <div id="gcal-last-sync">Nunca</div>
+            </div>
+            <div style="flex:1;min-width:150px;">
+              <div style="font-size:.72rem;color:var(--text-soft);font-weight:600;text-transform:uppercase;margin-bottom:3px;">Turnos sincronizados</div>
+              <div id="gcal-sync-count">0</div>
+            </div>
+          </div>
+          <div style="margin-top:10px;font-size:.78rem;color:var(--text-soft);">
+            ✅ Cada turno que agregues se sube automáticamente a Google Calendar<br>
+            ✅ Los eventos de Google Calendar se importan como turnos en NeuroVet<br>
+            ✅ Las modificaciones se sincronizan en ambas direcciones
+          </div>
+        </div>
+      </div>
+
+      <!-- Storage status card -->
+      <div class="card" style="margin-bottom:14px;border-left:4px solid #f97316;">
+        <div class="card-head">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:1.4rem;">📁</span>
+            <div>
+              <h3 style="margin:0;">Archivos en la nube</h3>
+              <div style="font-size:.74rem;color:var(--text-soft);" id="storage-status-desc">Se activa automáticamente con Firebase</div>
+            </div>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="uploadPendingFiles()" id="storage-upload-btn" style="display:none;">📤 Subir archivos locales</button>
+        </div>
+        <div id="storage-info" style="padding:10px 14px;border-top:1px solid var(--border-light);font-size:.82rem;">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;">
+            <div><div style="font-size:.71rem;color:var(--text-soft);font-weight:700;text-transform:uppercase;margin-bottom:3px;">Archivos sincronizados</div><div id="storage-count" style="font-weight:600;">—</div></div>
+            <div><div style="font-size:.71rem;color:var(--text-soft);font-weight:700;text-transform:uppercase;margin-bottom:3px;">Almacenamiento usado</div><div id="storage-size" style="font-weight:600;">—</div></div>
+          </div>
+          <div style="margin-top:10px;font-size:.78rem;color:var(--text-soft);line-height:1.7;">
+            ✅ PDFs, imágenes y archivos adjuntos se suben automáticamente a Firebase Storage<br>
+            ✅ Accesibles desde cualquier dispositivo con la misma cuenta Firebase<br>
+            ✅ Plan gratuito Firebase incluye 5 GB de almacenamiento
+          </div>
+        </div>
+      </div>
+
+      <!-- Firebase setup guide -->
       <div class="card"><div class="card-head"><h3>🚀 Cómo configurar Firebase (gratis)</h3></div><div class="card-body">
         <div class="firebase-step"><div class="step-num">1</div><div class="step-content"><h4>Crear proyecto Firebase</h4><p>Ir a <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a> → "Crear proyecto" → Elegir nombre → Crear</p></div></div>
         <div class="firebase-step"><div class="step-num">2</div><div class="step-content"><h4>Activar Firestore Database</h4><p>Menú izquierdo → "Firestore Database" → "Crear base de datos" → "Modo de prueba" → Seleccionar región → Listo</p></div></div>
@@ -1118,6 +1207,18 @@ service cloud.firestore {
     }
   }
 }</pre>
+    <br>
+    <b style="color:#dc2626;">⚠️ TAMBIÉN — Reglas de Firebase Storage (para archivos):</b><br>
+    Ir a Firebase → <b>Storage</b> → pestaña <b>Reglas</b> → reemplazar con esto → click <b>Publicar</b>:
+    <pre style="background:#1e293b;color:#e2e8f0;padding:10px;border-radius:6px;font-size:.72rem;overflow-x:auto;margin-top:7px;white-space:pre;">rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if true;
+    }
+  }
+}</pre>
+    Para activar Storage: Firebase → Storage → <b>Empezar</b> → Modo de prueba → Elegir región → Listo.
   </div>
 </details>
 </div><div class="modal-foot"><button class="btn btn-outline" onclick="closeModal('modal-firebase')">Cancelar</button><button class="btn btn-danger btn-sm" onclick="clearFirebase()" style="margin-right:auto;">Desconectar</button><button class="btn btn-primary" onclick="saveFirebaseConfig()">Conectar</button></div></div></div>
@@ -1261,11 +1362,11 @@ function newConsulta(key){
 function gv(id){return document.getElementById(id)?.value||'';}
 function collectRec(){
   const s=currentSpec;
-  const base={espMedica:s,owner:gv('f-owner'),ficha:gv('f-ficha'),fecha:gv('f-fecha')||new Date().toISOString().slice(0,10),tel:gv('f-tel'),email:gv('f-email'),dir:gv('f-dir'),vetDer:gv('f-vet-der'),clinicaDer:gv('f-clinica-der'),telDer:gv('f-tel-der'),paciente:gv('f-paciente'),especie:gv('f-especie'),raza:gv('f-raza'),sexo:gv('f-sexo'),edad:gv('f-edad'),peso:gv('f-peso'),vet:gv('f-vet'),motivo:gv('f-motivo'),anamnesis:gv('f-anamnesis')};
+  const base={espMedica:s,owner:gv('f-owner'),ficha:gv('f-ficha'),fecha:gv('f-fecha')||new Date().toISOString().slice(0,10),tel:gv('f-tel'),email:gv('f-email'),dir:gv('f-dir'),vetDer:gv('f-vet-der'),clinicaDer:gv('f-clinica-der'),telDer:gv('f-tel-der'),paciente:gv('f-paciente'),especie:gv('f-especie'),raza:gv('f-raza'),sexo:gv('f-sexo'),edad:gv('f-edad'),peso:gv('f-peso'),vet:gv('f-vet'),motivo:gv('f-motivo'),anamnesis:gv('f-anamnesis'),archivosDesc:gv('f-archivos-desc'),archivos:serializeAttachedFiles()};
   if(s==='neurologia')Object.assign(base,{em:gC('ck-em'),emObs:gv('f-em-obs'),pos:gC('ck-pos'),march:gC('ck-march'),par:gC('ck-par'),atax:gC('ck-atax'),mi:gC('ck-mi'),tono:gv('f-tono'),atrofia:gv('f-atrofia'),muscObs:gv('f-musc-obs'),esquel:gv('f-esquel'),ssT:gv('f-ss-t'),ssP:gv('f-ss-p'),ssPer:gv('f-ss-per'),spT:gv('f-sp-t'),spP:gv('f-sp-p'),spC:gv('f-sp-c'),hiper:gv('f-hiper'),dC:gv('f-dc'),dTL:gv('f-dtl'),dLS:gv('f-dls'),sensObs:gv('f-sens-obs'),ur:gC('ck-ur'),vej:gv('f-vej'),esf:gv('f-esf'),cat:gv('f-cat'),urObs:gv('f-ur-obs'),pan:gv('f-pan'),locIC:gv('f-loc-ic'),locEsp:gv('f-loc-esp'),locPer:gv('f-loc-per'),locObs:gv('f-loc-obs'),dx:gC('ck-dx'),dxPres:gv('f-dx-pres'),metodos:gv('f-metodos'),dxDef:gv('f-dx-def'),trat:gv('f-trat'),pron:gv('f-pron'),prox:gv('f-prox'),obsFin:gv('f-obs-fin'),cd:JSON.parse(JSON.stringify(window._cd||{}))});
   if(s==='cardiologia')Object.assign(base,{cFC:gv('c-fc'),cRitmo:gv('c-ritmo'),cPulso:gv('c-pulso'),cSoplo:gv('c-soplo'),cSoploLoc:gv('c-soplo-loc'),cFremito:gv('c-fremito'),cMucosas:gv('c-mucosas'),cTRC:gv('c-trc'),cYug:gv('c-yug'),cEdema:gv('c-edema'),cFR:gv('c-fr'),cPA:gv('c-pa'),cClase:gv('c-clase'),cDxP:gv('c-dxp'),cEco:gv('c-eco'),cTrat:gv('c-trat'),cProx:gv('c-prox'),cPron:gv('c-pron'),cObs:gv('c-obs'),prox:gv('c-prox')});
   if(s==='dermatologia')Object.assign(base,{dLP:gC('ck-lp'),dLS2:gC('ck-ls'),dDist:gv('d-dist'),dPrurito:gv('d-prurito'),dReg:gv('d-reg'),dDesc:gv('d-desc'),dDx:gv('d-dx'),dMet:gv('d-met'),dTrat:gv('d-trat'),dProx:gv('d-prox'),dPron:gv('d-pron'),prox:gv('d-prox')});
-  if(s==='cds')Object.assign(base,{cdsD:gC('ck-cds-d'),cdsI:gC('ck-cds-i'),cdsS:gC('ck-cds-s'),cdsH:gC('ck-cds-h'),cdsA:gC('ck-cds-a'),cdsA2:gC('ck-cds-a2'),cdsScoreD:gv('cds-score-d'),cdsScoreI:gv('cds-score-i'),cdsScoreS:gv('cds-score-s'),cdsScoreH:gv('cds-score-h'),cdsScoreA:gv('cds-score-a'),cdsScoreA2:gv('cds-score-a2'),cdsDObs:gv('cds-d-obs'),cdsIObs:gv('cds-i-obs'),cdsSobs:gv('cds-s-obs'),cdsHobs:gv('cds-h-obs'),cdsAobs:gv('cds-a-obs'),cdsA2obs:gv('cds-a2-obs'),cdsEdadDx:gv('cds-edad-dx'),cdsDuracion:gv('cds-duracion'),cdsDD:gv('cds-dd'),cdsDif:gv('cds-dif'),cdsTratFarm:gv('cds-trat-farm'),cdsTratAmb:gv('cds-trat-amb'),cdsDieta:gv('cds-dieta'),cdsPronostico:gv('cds-pronostico'),cdsProx:gv('cds-prox'),cdsObs:gv('cds-obs'),prox:gv('cds-prox'),archivosDesc:gv('f-archivos-desc'),archivos:window._attachedFiles||[]});
+  if(s==='cds')Object.assign(base,{cdsD:gC('ck-cds-d'),cdsI:gC('ck-cds-i'),cdsS:gC('ck-cds-s'),cdsH:gC('ck-cds-h'),cdsA:gC('ck-cds-a'),cdsA2:gC('ck-cds-a2'),cdsScoreD:gv('cds-score-d'),cdsScoreI:gv('cds-score-i'),cdsScoreS:gv('cds-score-s'),cdsScoreH:gv('cds-score-h'),cdsScoreA:gv('cds-score-a'),cdsScoreA2:gv('cds-score-a2'),cdsDObs:gv('cds-d-obs'),cdsIObs:gv('cds-i-obs'),cdsSobs:gv('cds-s-obs'),cdsHobs:gv('cds-h-obs'),cdsAobs:gv('cds-a-obs'),cdsA2obs:gv('cds-a2-obs'),cdsEdadDx:gv('cds-edad-dx'),cdsDuracion:gv('cds-duracion'),cdsDD:gv('cds-dd'),cdsDif:gv('cds-dif'),cdsTratFarm:gv('cds-trat-farm'),cdsTratAmb:gv('cds-trat-amb'),cdsDieta:gv('cds-dieta'),cdsPronostico:gv('cds-pronostico'),cdsProx:gv('cds-prox'),cdsObs:gv('cds-obs'),prox:gv('cds-prox'),archivosDesc:gv('f-archivos-desc'),archivos:serializeAttachedFiles()});
   return base;
 }
 
@@ -1289,42 +1390,307 @@ function calcCDSScore(){
 // ═══════════════════════════════════════════════
 // FILE UPLOAD
 // ═══════════════════════════════════════════════
-window._attachedFiles=[];
+// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
+// ARCHIVOS — Firestore (100% gratis, sin Storage)
+// Imágenes: comprimidas con canvas → base64 < 400KB
+// PDFs: base64 directamente
+// Todos guardados en colección "attachments" de Firestore
+// ═══════════════════════════════════════════════
+window._attachedFiles = [];
+// Cada archivo: {id, name, type, size, data, firestoreId, uploading, addedAt}
+// data = base64 comprimido (también es la fuente de verdad en la nube)
 
 function handleDragOver(e){e.preventDefault();document.getElementById('drop-zone').style.borderColor='var(--teal)';}
 function handleDrop(e){e.preventDefault();document.getElementById('drop-zone').style.borderColor='var(--border)';handleFiles(e.dataTransfer.files);}
 
 function handleFiles(files){
-  [...files].forEach(file=>{
-    if(file.size>10*1024*1024){showToast('Archivo demasiado grande (máx 10MB): '+file.name,'error');return;}
-    const reader=new FileReader();
-    reader.onload=ev=>{
-      const fileData={id:'f_'+Date.now()+'_'+Math.random().toString(36).slice(2),name:file.name,type:file.type,size:file.size,data:ev.target.result,addedAt:new Date().toISOString()};
-      window._attachedFiles.push(fileData);
-      renderFilePreviews();
-    };
-    reader.readAsDataURL(file);
+  Array.from(files).forEach(function(file){
+    if(file.size > 20*1024*1024){ showToast('Archivo muy grande (máx 20MB): '+file.name,'error'); return; }
+    var id = 'f_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+    var fileData = {id:id, name:file.name, type:file.type, size:file.size, data:null, firestoreId:null, uploading:true, addedAt:new Date().toISOString()};
+    window._attachedFiles.push(fileData);
+    renderFilePreviews();
+
+    if(file.type.startsWith('image/')){
+      // Comprimir imagen con canvas → target < 400KB
+      comprimirImagen(file, function(compressedBase64){
+        var idx = window._attachedFiles.findIndex(function(f){return f.id===id;});
+        if(idx>=0){
+          window._attachedFiles[idx].data = compressedBase64;
+          window._attachedFiles[idx].size = Math.round(compressedBase64.length * 0.75); // tamaño real estimado
+          window._attachedFiles[idx].uploading = false;
+        }
+        renderFilePreviews();
+        // Sincronizar con Firestore si está conectado
+        subirArchivoFirestore(id);
+      });
+    } else {
+      // PDF u otro: leer base64 directo
+      var reader = new FileReader();
+      reader.onload = function(ev){
+        var idx = window._attachedFiles.findIndex(function(f){return f.id===id;});
+        if(idx>=0){
+          window._attachedFiles[idx].data = ev.target.result;
+          window._attachedFiles[idx].uploading = false;
+        }
+        renderFilePreviews();
+        subirArchivoFirestore(id);
+      };
+      reader.readAsDataURL(file);
+    }
   });
 }
 
-function renderFilePreviews(){
-  const container=document.getElementById('files-preview');
-  if(!container)return;
-  container.innerHTML=window._attachedFiles.map(f=>{
-    const isImg=f.type.startsWith('image/');
-    const isPDF=f.type==='application/pdf';
-    const kb=Math.round(f.size/1024);
-    return`<div style="position:relative;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface);width:130px;flex-shrink:0;">
-      ${isImg?`<img src="${f.data}" style="width:130px;height:90px;object-fit:cover;display:block;">`:`<div style="width:130px;height:90px;display:flex;align-items:center;justify-content:center;background:var(--surface2);font-size:2.5rem;">${isPDF?'📄':'📎'}</div>`}
-      <div style="padding:5px 7px;"><div style="font-size:.68rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${f.name}</div><div style="font-size:.63rem;color:var(--text-soft);">${kb} KB</div></div>
-      <button onclick="removeFile('${f.id}')" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.6);border:none;border-radius:50%;width:20px;height:20px;color:#fff;cursor:pointer;font-size:.75rem;display:flex;align-items:center;justify-content:center;line-height:1;">×</button>
-      ${isImg?`<button onclick="viewFile('${f.id}')" style="position:absolute;top:4px;left:4px;background:rgba(0,0,0,.6);border:none;border-radius:4px;padding:2px 6px;color:#fff;cursor:pointer;font-size:.63rem;">👁</button>`:''}
-    </div>`;
-  }).join('');
+function comprimirImagen(file, callback){
+  var reader = new FileReader();
+  reader.onload = function(ev){
+    var img = new Image();
+    img.onload = function(){
+      // Reducir si es más grande de 1200px en cualquier dimensión
+      var maxDim = 1200;
+      var w = img.width, h = img.height;
+      if(w > maxDim || h > maxDim){
+        if(w > h){ h = Math.round(h * maxDim / w); w = maxDim; }
+        else { w = Math.round(w * maxDim / h); h = maxDim; }
+      }
+      var canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      // Comprimir con calidad 0.75 → suele ser < 200KB para imágenes médicas
+      var compressed = canvas.toDataURL('image/jpeg', 0.75);
+      // Si sigue siendo grande, comprimir más
+      if(compressed.length > 500000){
+        compressed = canvas.toDataURL('image/jpeg', 0.5);
+      }
+      callback(compressed);
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
 }
 
-function removeFile(id){window._attachedFiles=window._attachedFiles.filter(f=>f.id!==id);renderFilePreviews();}
-function viewFile(id){const f=window._attachedFiles.find(x=>x.id===id);if(f){const w=window.open();w.document.write(`<img src="${f.data}" style="max-width:100%;"><p style="font-family:sans-serif;font-size:12px;color:#666;">${f.name}</p>`);}}
+async function subirArchivoFirestore(fileId){
+  if(!window._db) return; // Sin Firestore: queda local
+  var f = window._attachedFiles.find(function(x){return x.id===fileId;});
+  if(!f || !f.data) return;
+  try{
+    // Guardar en colección "attachments" — documento propio por archivo
+    var docRef = window._db.collection('attachments').doc(fileId);
+    await docRef.set({
+      id: f.id,
+      name: f.name,
+      type: f.type,
+      size: f.size,
+      data: f.data,  // base64 — Firestore soporta hasta ~1MB por doc
+      addedAt: f.addedAt
+    });
+    var idx = window._attachedFiles.findIndex(function(x){return x.id===fileId;});
+    if(idx>=0) window._attachedFiles[idx].firestoreId = fileId;
+    renderFilePreviews();
+    // Actualizar contador en UI
+    updateStorageUI(true);
+  }catch(e){
+    // Si el archivo es muy grande para Firestore (>1MB), guardar solo local
+    if(e.code === 'invalid-argument' || (e.message && e.message.includes('exceed'))){
+      showToast('Archivo muy grande para sincronizar: '+f.name+' (máx ~800KB)','error');
+    } else {
+      console.error('subirArchivoFirestore:', e);
+    }
+  }
+}
+
+async function cargarArchivosFirestore(fileIds){
+  // Cargar archivos de Firestore dado un array de IDs
+  if(!window._db || !fileIds || !fileIds.length) return [];
+  var archivos = [];
+  for(var i=0; i<fileIds.length; i++){
+    try{
+      var snap = await window._db.collection('attachments').doc(fileIds[i]).get();
+      if(snap.exists) archivos.push(snap.data());
+    }catch(e){ console.error('cargarArchivo:', e); }
+  }
+  return archivos;
+}
+
+async function eliminarArchivoFirestore(fileId){
+  if(!window._db || !fileId) return;
+  try{ await window._db.collection('attachments').doc(fileId).delete(); }
+  catch(e){ console.error('eliminarArchivo:', e); }
+}
+
+// Subir archivos locales pendientes cuando se conecta Firestore
+async function uploadPendingFiles(){
+  if(!window._db){ showToast('Firestore no configurado','error'); return; }
+  var totalPending = 0;
+  // Revisar archivos en records que no tienen firestoreId
+  for(var i=0; i<records.length; i++){
+    var r = records[i];
+    if(!r.archivos || !r.archivos.length) continue;
+    for(var j=0; j<r.archivos.length; j++){
+      var f = r.archivos[j];
+      if(f.data && !f.firestoreId){
+        totalPending++;
+        try{
+          await window._db.collection('attachments').doc(f.id).set({
+            id:f.id, name:f.name, type:f.type, size:f.size, data:f.data, addedAt:f.addedAt
+          });
+          records[i].archivos[j].firestoreId = f.id;
+        }catch(e){ console.error('pending upload:', f.name, e); }
+      }
+    }
+  }
+  if(totalPending > 0){
+    localStorage.setItem('nv4_rec', JSON.stringify(records));
+    showToast(totalPending+' archivo(s) sincronizados con Firestore','success');
+    updateStorageUI(true);
+  } else {
+    showToast('Todos los archivos ya están sincronizados','info');
+  }
+}
+
+function renderFilePreviews(){
+  var container = document.getElementById('files-preview');
+  if(!container) return;
+  if(!window._attachedFiles.length){
+    container.innerHTML='<div style="color:var(--text-soft);font-size:.78rem;text-align:center;padding:8px;">Sin archivos adjuntos</div>';
+    return;
+  }
+  var html = '';
+  window._attachedFiles.forEach(function(f){
+    var isImg = f.type && f.type.startsWith('image/');
+    var isPDF = f.type === 'application/pdf';
+    var kb = Math.round((f.size||0)/1024);
+    var src = f.data;
+
+    // Badge de sincronización
+    var badge = '';
+    if(f.uploading){
+      badge = '<div style="position:absolute;top:4px;right:26px;background:#f97316;border-radius:3px;padding:1px 5px;color:#fff;font-size:.58rem;font-weight:700;">...</div>';
+    } else if(f.firestoreId){
+      badge = '<div style="position:absolute;top:4px;right:26px;background:#16a34a;border-radius:3px;padding:1px 5px;color:#fff;font-size:.58rem;font-weight:700;">☁️</div>';
+    } else {
+      badge = '<div style="position:absolute;top:4px;right:26px;background:#9ca3af;border-radius:3px;padding:1px 5px;color:#fff;font-size:.58rem;font-weight:700;">📱</div>';
+    }
+
+    html += '<div style="position:relative;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface);width:130px;flex-shrink:0;">';
+    if(isImg && src){
+      html += '<img src="'+src+'" style="width:130px;height:90px;object-fit:cover;display:block;" loading="lazy">';
+    } else {
+      html += '<div style="width:130px;height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--surface2);gap:4px;">';
+      html += '<div style="font-size:2rem;">'+(isPDF?'📄':'📎')+'</div>';
+      if(f.uploading) html += '<div style="font-size:.65rem;color:var(--teal-dark);">Procesando...</div>';
+      html += '</div>';
+    }
+    html += '<div style="padding:5px 7px;">';
+    html += '<div style="font-size:.68rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+f.name+'">'+f.name+'</div>';
+    html += '<div style="font-size:.63rem;color:var(--text-soft);">'+kb+' KB'+(f.firestoreId?' · ☁️ Nube':' · 📱 Local')+'</div>';
+    html += '</div>';
+    html += badge;
+    html += '<button data-file-id="'+f.id+'" class="file-remove-btn" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.6);border:none;border-radius:50%;width:20px;height:20px;color:#fff;cursor:pointer;font-size:.75rem;display:flex;align-items:center;justify-content:center;line-height:1;">×</button>';
+    if(src){
+      html += '<button data-file-id="'+f.id+'" class="file-view-btn" style="position:absolute;top:4px;left:4px;background:rgba(0,0,0,.6);border:none;border-radius:4px;padding:2px 6px;color:#fff;cursor:pointer;font-size:.63rem;">👁</button>';
+    }
+    html += '</div>';
+  });
+  container.innerHTML = html;
+  container.querySelectorAll('.file-remove-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){ removeFile(btn.dataset.fileId); });
+  });
+  container.querySelectorAll('.file-view-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){ viewFile(btn.dataset.fileId); });
+  });
+}
+
+function removeFile(id){
+  var f = window._attachedFiles.find(function(x){return x.id===id;});
+  if(f && f.firestoreId) eliminarArchivoFirestore(id);
+  window._attachedFiles = window._attachedFiles.filter(function(x){return x.id!==id;});
+  renderFilePreviews();
+}
+
+function viewFile(id){
+  var f = window._attachedFiles.find(function(x){return x.id===id;});
+  if(!f || !f.data) return;
+  var w = window.open('','_blank');
+  if(!w) return;
+  if(f.type==='application/pdf'){
+    w.document.write('<html><body style="margin:0;height:100vh;"><embed src="'+f.data+'" type="application/pdf" width="100%" height="100%"><p style="font-family:sans-serif;font-size:12px;padding:10px;"><a href="'+f.data+'" download="'+f.name+'">Descargar '+f.name+'</a></p></body></html>');
+  } else {
+    w.document.write('<html><body style="margin:0;background:#111;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:10px;"><img src="'+f.data+'" style="max-width:100%;max-height:90vh;object-fit:contain;"><p style="color:#fff;font-family:sans-serif;font-size:12px;background:rgba(0,0,0,.5);padding:4px 12px;border-radius:20px;margin:0;">'+f.name+'</p></body></html>');
+  }
+  w.document.close();
+}
+
+function restoreAttachedFiles(archivos){
+  window._attachedFiles = (archivos||[]).map(function(f){
+    return {
+      id: f.id || ('f_'+Date.now()+'_'+Math.random().toString(36).slice(2)),
+      name: f.name || 'archivo',
+      type: f.type || '',
+      size: f.size || 0,
+      data: f.data || null,
+      firestoreId: f.firestoreId || (f.id&&window._db?f.id:null),
+      uploading: false,
+      addedAt: f.addedAt || new Date().toISOString()
+    };
+  });
+  renderFilePreviews();
+  // Si hay archivos sin datos locales pero con firestoreId, cargarlos
+  var sinDatos = window._attachedFiles.filter(function(f){return !f.data && f.firestoreId;});
+  if(sinDatos.length && window._db){
+    sinDatos.forEach(function(f){
+      window._db.collection('attachments').doc(f.firestoreId).get().then(function(snap){
+        if(snap.exists){
+          var idx = window._attachedFiles.findIndex(function(x){return x.id===f.id;});
+          if(idx>=0){
+            window._attachedFiles[idx].data = snap.data().data;
+            window._attachedFiles[idx].size = snap.data().size || f.size;
+          }
+          renderFilePreviews();
+        }
+      }).catch(function(e){ console.error('load file from Firestore:', e); });
+    });
+  }
+}
+
+function serializeAttachedFiles(){
+  return window._attachedFiles.map(function(f){
+    return {
+      id: f.id,
+      name: f.name,
+      type: f.type,
+      size: f.size,
+      // Guardar data solo si es pequeño (<300KB) o no tiene firestoreId
+      data: (f.firestoreId && f.data && f.data.length > 200000) ? null : f.data,
+      firestoreId: f.firestoreId || null,
+      addedAt: f.addedAt
+    };
+  });
+}
+
+function updateStorageUI(active){
+  var statusEl = document.getElementById('storage-status-desc');
+  var btn = document.getElementById('storage-upload-btn');
+  var countEl = document.getElementById('storage-count');
+  var sizeEl = document.getElementById('storage-size');
+  if(statusEl) statusEl.textContent = active ? 'Conectado — archivos en Firestore (sin costo)' : 'Se activa con Firebase';
+  if(btn) btn.style.display = active ? 'inline-flex' : 'none';
+  var total=0, sizeTotal=0;
+  records.forEach(function(r){
+    if(r.archivos) r.archivos.forEach(function(f){
+      if(f.firestoreId){ total++; sizeTotal+=(f.size||0); }
+    });
+  });
+  if(countEl) countEl.textContent = total + ' archivo'+(total!==1?'s':'');
+  if(sizeEl) sizeEl.textContent = sizeTotal>1048576 ? Math.round(sizeTotal/1048576*10)/10+' MB' : Math.round(sizeTotal/1024)+' KB';
+}
+
+// Alias
+function uploadRecordFiles(){ return uploadPendingFiles(); }
+function deleteFileFromStorage(id){ return eliminarArchivoFirestore(id); }
+
 
 // ═══════════════════════════════════════════════
 // CLEAR FORM — agregar reset de archivos y CDS
@@ -1354,6 +1720,8 @@ function loadRecord(id){
   const idx={neurologia:0,cardiologia:1,dermatologia:2,cds:3}[s]||0;
   navigate('nueva-ficha');
   if(tabs[idx])switchSpec(s,tabs[idx]);
+  // Restaurar archivos adjuntos para TODAS las especialidades
+  restoreAttachedFiles(r.archivos||[]);
   const sv=(fid,v)=>{const el=document.getElementById(fid);if(el)el.value=v||'';};
   sv('f-owner',r.owner);sv('f-ficha',r.ficha);sv('f-fecha',r.fecha);sv('f-tel',r.tel);sv('f-email',r.email);sv('f-dir',r.dir);sv('f-vet-der',r.vetDer);sv('f-clinica-der',r.clinicaDer);sv('f-tel-der',r.telDer);sv('f-paciente',r.paciente);sv('f-especie',r.especie);sv('f-raza',r.raza);sv('f-sexo',r.sexo);sv('f-edad',r.edad);sv('f-peso',r.peso);sv('f-vet',r.vet);sv('f-motivo',r.motivo);sv('f-anamnesis',r.anamnesis);
   if(s==='neurologia'){sC('ck-em',r.em||[]);sv('f-em-obs',r.emObs);sC('ck-pos',r.pos||[]);sC('ck-march',r.march||[]);sC('ck-par',r.par||[]);sC('ck-atax',r.atax||[]);sC('ck-mi',r.mi||[]);sv('f-tono',r.tono);sv('f-atrofia',r.atrofia);sv('f-musc-obs',r.muscObs);sv('f-esquel',r.esquel);sv('f-ss-t',r.ssT);sv('f-ss-p',r.ssP);sv('f-ss-per',r.ssPer);sv('f-sp-t',r.spT);sv('f-sp-p',r.spP);sv('f-sp-c',r.spC);sv('f-hiper',r.hiper);sv('f-dc',r.dC);sv('f-dtl',r.dTL);sv('f-dls',r.dLS);sv('f-sens-obs',r.sensObs);sC('ck-ur',r.ur||[]);sv('f-vej',r.vej);sv('f-esf',r.esf);sv('f-cat',r.cat);sv('f-ur-obs',r.urObs);sv('f-pan',r.pan);sv('f-loc-ic',r.locIC);sv('f-loc-esp',r.locEsp);sv('f-loc-per',r.locPer);sv('f-loc-obs',r.locObs);sC('ck-dx',r.dx||[]);sv('f-dx-pres',r.dxPres);sv('f-metodos',r.metodos);sv('f-dx-def',r.dxDef);sv('f-trat',r.trat);sv('f-pron',r.pron);sv('f-prox',r.prox);sv('f-obs-fin',r.obsFin);
@@ -1371,7 +1739,6 @@ function loadRecord(id){
     sv('cds-dif',r.cdsDif);sv('cds-trat-farm',r.cdsTratFarm);sv('cds-trat-amb',r.cdsTratAmb);
     sv('cds-dieta',r.cdsDieta);sv('cds-pronostico',r.cdsPronostico);sv('cds-prox',r.cdsProx);sv('cds-obs',r.cdsObs);
     sv('f-archivos-desc',r.archivosDesc);
-    window._attachedFiles=r.archivos||[];renderFilePreviews();
     calcCDSScore();
   }
 }
@@ -1385,8 +1752,7 @@ function clearForm(){
   // Reset CDS selects
   ['cds-score-d','cds-score-i','cds-score-s','cds-score-h','cds-score-a','cds-score-a2','cds-pronostico'].forEach(id=>{const el=document.getElementById(id);if(el)el.selectedIndex=0;});
   // Reset archivos
-  window._attachedFiles=[];
-  renderFilePreviews();
+  restoreAttachedFiles([]);
   ['f-especie','f-sexo','f-tono','f-atrofia','f-ss-t','f-ss-p','f-ss-per','f-sp-t','f-sp-p','f-sp-c','f-dc','f-dtl','f-dls','f-vej','f-esf','f-cat','f-loc-ic','f-loc-esp','f-pron','c-ritmo','c-pulso','c-soplo','c-soplo-loc','c-fremito','c-mucosas','c-trc','c-yug','c-edema','c-clase','c-dxp','c-prox','c-pron','d-dist','d-prurito','d-dx','d-prox','d-pron'].forEach(id=>{const el=document.getElementById(id);if(el)el.selectedIndex=0;});
   window._cd={};buildPT();buildRT();buildRF();
 }
@@ -1812,6 +2178,7 @@ function saveTurno(){
   }
   localStorage.setItem('nv4_tur',JSON.stringify(turnos));
   saveTurnoToCloud(t);
+  if(gcalIsConnected()) gcalCreateEvent(t);
   closeModal('modal-turno');
   renderAgenda();
   renderDash();
@@ -1831,16 +2198,293 @@ function delTurno(id){
 }
 
 // Exportar turno recién creado (el último guardado) a Google Cal
+// ── Exportar turno recién creado a Google Cal ──
 function exportarTurnoGCalNuevo(){
-  if(turnos.length) exportarTurnoGCal(turnos[turnos.length-1].id);
+  var t = turnos.length ? turnos[turnos.length-1] : null;
+  if(!t) return;
+  if(gcalIsConnected()){ gcalCreateEvent(t); }
+  else { exportarTurnoGCal(t.id); }
 }
 
 function exportarTodosGCal(){
   var items=getProxTurnos().filter(function(t){return !t.fromRec;});
-  if(!items.length){showToast('No hay turnos manuales para exportar','info');return;}
-  showToast('Abriendo Google Calendar para '+items.length+' turno(s)...','info');
-  items.forEach(function(t){ exportarTurnoGCal(t.id); });
+  if(!items.length){showToast('No hay turnos para exportar','info');return;}
+  if(gcalIsConnected()){
+    items.forEach(function(t){ gcalCreateEvent(t); });
+    showToast('Subiendo '+items.length+' turnos a Google Calendar...','info');
+  } else {
+    items.forEach(function(t){ exportarTurnoGCal(t.id); });
+    showToast('Abriendo Google Calendar para '+items.length+' turno(s)...','info');
+  }
 }
+
+// ═══════════════════════════════════════════════════
+// GOOGLE CALENDAR API — Sincronizacion bidireccional
+// ═══════════════════════════════════════════════════
+var GCAL_SCOPE = 'https://www.googleapis.com/auth/calendar';
+var GCAL_DISCOVERY = 'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest';
+var _gcalTokenClient = null;
+var _gcalAccessToken = null;
+
+function gcalIsConnected(){
+  return !!(_gcalAccessToken);
+}
+
+function gcalSetup(){
+  var box = document.getElementById('gcal-setup-box');
+  if(!box) return;
+  var stored = localStorage.getItem('gcal_client_id');
+  if(stored) document.getElementById('gcal-client-id').value = stored;
+  box.style.display = box.style.display === 'none' ? 'block' : 'none';
+}
+
+function gcalConnect(){
+  var el = document.getElementById('gcal-client-id');
+  if(!el) return;
+  var clientId = el.value.trim();
+  if(!clientId){ showToast('Ingresa el Client ID de Google','error'); return; }
+  localStorage.setItem('gcal_client_id', clientId);
+  showToast('Cargando Google API...','info');
+  gcalLoadAPI(clientId);
+}
+
+function gcalLoadAPI(clientId){
+  var loadGAPI = function(){
+    if(window.gapi){
+      gapi.load('client', function(){ gcalInitClient(clientId); });
+    } else {
+      var s = document.createElement('script');
+      s.src = 'https://apis.google.com/js/api.js';
+      s.async = true;
+      s.onload = function(){ gapi.load('client', function(){ gcalInitClient(clientId); }); };
+      document.head.appendChild(s);
+    }
+  };
+  if(window.google && window.google.accounts){
+    loadGAPI();
+  } else {
+    var s2 = document.createElement('script');
+    s2.src = 'https://accounts.google.com/gsi/client';
+    s2.async = true;
+    s2.onload = loadGAPI;
+    document.head.appendChild(s2);
+  }
+}
+
+async function gcalInitClient(clientId){
+  try{
+    await gapi.client.init({ discoveryDocs: [GCAL_DISCOVERY] });
+    _gcalTokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: clientId,
+      scope: GCAL_SCOPE,
+      callback: function(resp){
+        if(resp && resp.access_token){
+          _gcalAccessToken = resp.access_token;
+          gapi.client.setToken(resp);
+          // Obtener email del usuario
+          fetch('https://www.googleapis.com/oauth2/v2/userinfo',{
+            headers:{'Authorization':'Bearer '+resp.access_token}
+          }).then(function(r){return r.json();}).then(function(info){
+            localStorage.setItem('gcal_user_email', info.email||'');
+            gcalUpdateUI(true, info.email||'');
+            showToast('Google Calendar conectado: '+(info.email||''), 'success');
+            gcalSyncAll();
+          }).catch(function(){
+            gcalUpdateUI(true,'');
+            gcalSyncAll();
+          });
+        } else {
+          showToast('Error al obtener token de Google','error');
+        }
+      }
+    });
+    _gcalTokenClient.requestAccessToken({prompt:'consent'});
+  }catch(e){
+    console.error('gcalInitClient:', e);
+    showToast('Error al conectar con Google: '+(e.message||e),'error');
+  }
+}
+
+function gcalUpdateUI(connected, email){
+  var setupBox = document.getElementById('gcal-setup-box');
+  var connectBtn = document.getElementById('gcal-connect-btn');
+  var disconnectBtn = document.getElementById('gcal-disconnect-btn');
+  var syncBtn = document.getElementById('gcal-sync-now-btn');
+  var infoBox = document.getElementById('gcal-info-box');
+  var descEl = document.getElementById('gcal-status-desc');
+  var emailEl = document.getElementById('gcal-user-email');
+  var dashBtn = document.getElementById('gcal-sync-btn');
+  if(setupBox) setupBox.style.display='none';
+  if(connected){
+    if(connectBtn) connectBtn.style.display='none';
+    if(disconnectBtn) disconnectBtn.style.display='inline-flex';
+    if(syncBtn) syncBtn.style.display='inline-flex';
+    if(infoBox) infoBox.style.display='block';
+    if(emailEl) emailEl.textContent=email||localStorage.getItem('gcal_user_email')||'';
+    if(descEl) descEl.textContent='Conectado — sincronizacion automatica activa';
+    if(dashBtn) dashBtn.style.display='inline-flex';
+  } else {
+    if(connectBtn){connectBtn.style.display='inline-flex';connectBtn.textContent='Conectar Google Calendar';}
+    if(disconnectBtn) disconnectBtn.style.display='none';
+    if(syncBtn) syncBtn.style.display='none';
+    if(infoBox) infoBox.style.display='none';
+    if(descEl) descEl.textContent='No conectado — tus turnos no estan sincronizados';
+    if(dashBtn) dashBtn.style.display='none';
+  }
+}
+
+function gcalDisconnect(){
+  if(window.google && _gcalAccessToken){
+    try{ google.accounts.oauth2.revoke(_gcalAccessToken, function(){}); }catch(e){}
+  }
+  _gcalAccessToken = null;
+  localStorage.removeItem('gcal_user_email');
+  gcalUpdateUI(false,'');
+  showToast('Google Calendar desconectado','info');
+}
+
+async function gcalCreateEvent(turno){
+  if(!gcalIsConnected()||!window.gapi) return false;
+  try{
+    var hora = turno.hora||'09:00';
+    var h2 = String(parseInt(hora.split(':')[0])+1).padStart(2,'0')+':'+hora.split(':')[1];
+    var resp = await gapi.client.calendar.events.insert({
+      calendarId:'primary',
+      resource:{
+        summary:'NeuroVet: '+(turno.paciente||'Consulta')+(turno.owner?' - '+turno.owner:''),
+        description:(turno.motivo||'Control veterinario')+(turno.notas?'\n'+turno.notas:'')+'\n[NeuroVet:'+turno.id+']',
+        start:{dateTime:turno.fecha+'T'+hora+':00',timeZone:'America/Argentina/Buenos_Aires'},
+        end:{dateTime:turno.fecha+'T'+h2+':00',timeZone:'America/Argentina/Buenos_Aires'},
+        colorId:'2',
+        reminders:{useDefault:false,overrides:[{method:'popup',minutes:60}]}
+      }
+    });
+    if(resp.status===200){
+      var idx=turnos.findIndex(function(t){return t.id===turno.id;});
+      if(idx>=0){
+        turnos[idx].gcalEventId=resp.result.id;
+        localStorage.setItem('nv4_tur',JSON.stringify(turnos));
+        if(window._db) saveTurnoToCloud(turnos[idx]);
+      }
+      return true;
+    }
+  }catch(e){
+    if(e.status===401&&_gcalTokenClient) _gcalTokenClient.requestAccessToken({prompt:''});
+    console.error('gcalCreateEvent:',e);
+  }
+  return false;
+}
+
+async function gcalUpdateEvent(turno){
+  if(!gcalIsConnected()||!turno.gcalEventId||!window.gapi) return;
+  try{
+    var hora=turno.hora||'09:00';
+    var h2=String(parseInt(hora.split(':')[0])+1).padStart(2,'0')+':'+hora.split(':')[1];
+    await gapi.client.calendar.events.patch({
+      calendarId:'primary',eventId:turno.gcalEventId,
+      resource:{
+        summary:'NeuroVet: '+(turno.paciente||'Consulta')+(turno.owner?' - '+turno.owner:''),
+        description:(turno.motivo||'')+(turno.notas?'\n'+turno.notas:'')+'\n[NeuroVet:'+turno.id+']',
+        start:{dateTime:turno.fecha+'T'+hora+':00',timeZone:'America/Argentina/Buenos_Aires'},
+        end:{dateTime:turno.fecha+'T'+h2+':00',timeZone:'America/Argentina/Buenos_Aires'}
+      }
+    });
+  }catch(e){console.error('gcalUpdateEvent:',e);}
+}
+
+async function gcalDeleteEvent(gcalEventId){
+  if(!gcalIsConnected()||!gcalEventId||!window.gapi) return;
+  try{
+    await gapi.client.calendar.events.delete({calendarId:'primary',eventId:gcalEventId});
+  }catch(e){console.error('gcalDeleteEvent:',e);}
+}
+
+async function gcalSyncAll(){
+  if(!gcalIsConnected()||!window.gapi){
+    showToast('Google Calendar no conectado','error');
+    navigate('sync');
+    return;
+  }
+  showToast('Sincronizando con Google Calendar...','info');
+  var synced=0, imported=0;
+  var today=new Date().toISOString().slice(0,10);
+
+  // 1. Subir turnos sin gcalEventId
+  var pendientes=turnos.filter(function(t){return !t.gcalEventId&&t.fecha>=today;});
+  for(var i=0;i<pendientes.length;i++){
+    var ok=await gcalCreateEvent(pendientes[i]);
+    if(ok) synced++;
+  }
+  // 2. Actualizar turnos con gcalEventId
+  var conId=turnos.filter(function(t){return t.gcalEventId&&t.fecha>=today;});
+  for(var j=0;j<conId.length;j++) await gcalUpdateEvent(conId[j]);
+
+  // 3. Importar eventos de Google Calendar (solo los de NeuroVet)
+  try{
+    var now=new Date().toISOString();
+    var future=new Date(Date.now()+90*24*3600*1000).toISOString();
+    var response=await gapi.client.calendar.events.list({
+      calendarId:'primary',timeMin:now,timeMax:future,
+      singleEvents:true,orderBy:'startTime',maxResults:200
+    });
+    var evs=response.result.items||[];
+    evs.forEach(function(ev){
+      // Solo importar eventos que tienen nuestro tag [NeuroVet:...]
+      if(!ev.summary) return;
+      var existsById=turnos.some(function(t){return t.gcalEventId===ev.id;});
+      if(existsById) return;
+      // Evento de Google Calendar que no está en NeuroVet — importar
+      if(ev.start&&ev.start.dateTime){
+        var dt=ev.start.dateTime;
+        var nuevo={
+          id:'gcal_'+ev.id,gcalEventId:ev.id,
+          fecha:dt.slice(0,10),hora:dt.slice(11,16),
+          paciente:'',owner:'',
+          motivo:ev.summary||'Evento Google Calendar',
+          notas:ev.description||'',origen:'gcal'
+        };
+        turnos.push(nuevo);
+        imported++;
+      }
+    });
+    if(imported>0){
+      localStorage.setItem('nv4_tur',JSON.stringify(turnos));
+      if(window._db) turnos.filter(function(t){return t.origen==='gcal';}).forEach(function(t){saveTurnoToCloud(t);});
+    }
+  }catch(e){console.error('gcalSyncAll import:',e);}
+
+  var now2=new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+  var elSync=document.getElementById('gcal-last-sync');
+  if(elSync) elSync.textContent='Hoy '+now2;
+  var elCount=document.getElementById('gcal-sync-count');
+  if(elCount) elCount.textContent=synced+imported;
+  renderAgenda(); renderDash();
+  showToast('Google Cal: '+synced+' exportados, '+imported+' importados','success');
+}
+
+function gcalAutoInit(){
+  var email=localStorage.getItem('gcal_user_email');
+  var clientId=localStorage.getItem('gcal_client_id');
+  if(!clientId) return;
+  var descEl=document.getElementById('gcal-status-desc');
+  if(descEl&&email){
+    descEl.textContent='Cuenta: '+email+' — Click en Conectar para reconectar';
+    var btn=document.getElementById('gcal-connect-btn');
+    if(btn) btn.textContent='Reconectar ('+email+')';
+  }
+}
+window.addEventListener('DOMContentLoaded',function(){ gcalAutoInit(); });
+
+function syncGoogleCalendar(){
+  if(gcalIsConnected()){ gcalSyncAll(); }
+  else {
+    var today=new Date().toISOString().slice(0,10);
+    var hoy=turnos.filter(function(t){return t.fecha===today;});
+    if(!hoy.length){showToast('No hay turnos para hoy','info');return;}
+    hoy.forEach(function(t){exportarTurnoGCal(t.id);});
+  }
+}
+
 
 // Inicializar fecha del dashboard
 function initDashFecha(){
@@ -2067,6 +2711,8 @@ async function initFB(config){
     if(firebase.apps.length){for(const a of firebase.apps){try{await a.delete();}catch{}}}
     firebase.initializeApp(config);
     window._db=firebase.firestore();
+    // Firestore activo — subir archivos locales pendientes
+    setTimeout(function(){ uploadPendingFiles(); updateStorageUI(true); }, 2000);
     try{
       await window._db.enablePersistence({synchronizeTabs:true});
     }catch(err){console.log('Persistence:',err.code);}
@@ -2075,6 +2721,7 @@ async function initFB(config){
     syncProtocolosFromCloud();
     syncTurnosFromCloud();
     setSyncUI('ok');
+    updateStorageUI();
     return true;
   }catch(e){console.error('Firebase init:',e);setSyncUI('off');return false;}
 }
@@ -2156,7 +2803,7 @@ async function saveToCloud(r){
   }
 }
 
-// Subir cola de registros pendientes cuando hay internet
+// (uploadPendingFiles y updateStorageUI definidas en el bloque de archivos)
 async function flushQueue(){
   if(!window._db)return;
   const q=JSON.parse(localStorage.getItem('nv4_queue')||'[]');
