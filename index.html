@@ -219,6 +219,38 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   .spec-tab{padding:6px 8px;font-size:.75rem;}
   .ficha-title{font-size:.88rem;}
 }
+/* ── BIBLIOTECA ────────────────────────────────── */
+.bib-toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;align-items:center;}
+.bib-toolbar input[type=search]{flex:1;min-width:150px;padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.84rem;outline:none;background:var(--surface);color:var(--text);}
+.bib-toolbar select{padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.82rem;outline:none;background:var(--surface);color:var(--text);}
+.bib-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:14px;}
+@media(max-width:600px){.bib-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;}}
+.bib-card{background:var(--surface);border:1.5px solid var(--border-light);border-radius:11px;overflow:hidden;transition:.15s;cursor:pointer;}
+.bib-card:hover{border-color:var(--teal);box-shadow:0 3px 14px rgba(0,0,0,.09);}
+.bib-thumb{height:100px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:2.4rem;overflow:hidden;border-bottom:1px solid var(--border-light);}
+.bib-thumb img,.bib-thumb video{width:100%;height:100%;object-fit:cover;}
+.bib-card-body{padding:10px 11px;}
+.bib-card-title{font-weight:600;font-size:.85rem;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bib-card-desc{font-size:.73rem;color:var(--text-soft);margin-bottom:7px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.bib-badges{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:7px;}
+.bib-badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:99px;font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
+.bib-badge-pdf{background:#fef2f2;color:#dc2626;}.bib-badge-image{background:#eff6ff;color:#2563eb;}
+.bib-badge-video{background:#faf5ff;color:#7c3aed;}.bib-badge-link{background:#f0fdf4;color:#166534;}
+.bib-badge-other{background:#f9fafb;color:#6b7280;}.bib-badge-cat{background:var(--surface2);color:var(--text-mid);}
+.bib-card-actions{display:flex;gap:4px;flex-wrap:wrap;}
+.bib-card-actions button{padding:3px 7px;font-size:.71rem;border-radius:6px;border:1.5px solid var(--border);background:none;color:var(--text);cursor:pointer;font-family:inherit;transition:.12s;}
+.bib-card-actions button:hover{background:var(--teal);color:#fff;border-color:var(--teal);}
+.bib-dropzone{border:2px dashed var(--border);border-radius:10px;padding:24px 16px;text-align:center;cursor:pointer;transition:.15s;background:var(--surface2);}
+.bib-dropzone:hover,.bib-dropzone.dragover{border-color:var(--teal);background:rgba(20,184,166,.05);}
+.bib-dropzone-icon{font-size:2.2rem;margin-bottom:7px;}
+.bib-empty{text-align:center;padding:60px 20px;color:var(--text-soft);}
+.bib-pac-link{font-size:.73rem;color:var(--teal-dark);display:flex;align-items:center;gap:3px;margin-top:5px;}
+.bib-viewer-content{min-height:100px;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:8px;}
+.bib-viewer-content iframe{width:100%;height:62vh;border:none;border-radius:8px;}
+.bib-viewer-content img{max-width:100%;max-height:62vh;object-fit:contain;border-radius:8px;}
+.bib-viewer-content video{max-width:100%;max-height:62vh;border-radius:8px;}
+.bib-pac-dropdown-item{padding:7px 11px;cursor:pointer;font-size:.82rem;border-bottom:1px solid var(--border-light);}
+.bib-pac-dropdown-item:hover{background:var(--surface2);}
 </style>
 </head>
 <body>
@@ -246,6 +278,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div style="height:1px;background:rgba(255,255,255,.1);margin:8px 16px;"></div>
     <div class="sb-item" onclick="navigate('protocolos')" style="background:rgba(255,255,255,.06);border-left:3px solid #8b5cf6;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z"/></svg>📋 Protocolos</div>
     <div class="sb-item" onclick="openVademecum()" style="background:rgba(255,255,255,.08);border-left:3px solid #f97316;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>💊 Vademécum</div>
+    <div class="sb-item" onclick="navigate('biblioteca')" style="background:rgba(255,255,255,.07);border-left:3px solid #06b6d4;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>📚 Biblioteca</div>
   </div>
   <div class="sb-footer" id="sb-sync-footer">Sin sincronización</div>
 </nav>
@@ -368,12 +401,26 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
           <button class="close-btn" onclick="closeModal('modal-update')">×</button>
         </div>
         <div class="modal-body">
-          <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:9px;padding:14px 16px;margin-bottom:16px;font-size:.84rem;color:#92400e;">
-            <strong>Cómo actualizar:</strong><br>
-            1. Descargá los nuevos archivos HTML (neurovet_v4.html y/o neurovet_vademecum.html)<br>
-            2. Seleccioná los archivos haciendo click en el botón de abajo<br>
-            3. La app se actualiza sin perder ningún dato guardado
-            <br><span style="font-size:.76rem;color:#b45309;">📱 En celular: guardá el nuevo HTML y seleccionalo desde "Archivos"</span>
+          <!-- ── GITHUB AUTO-UPDATE ── -->
+          <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:9px;padding:14px 16px;margin-bottom:14px;">
+            <div style="font-size:.82rem;font-weight:700;color:#166534;margin-bottom:10px;">⚡ Actualizar desde GitHub (automático)</div>
+            <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:10px;">
+              <div class="form-group">
+                <label style="font-size:.69rem;color:#166534;text-transform:uppercase;letter-spacing:.04em;">URL raw — neurovet_v4.html</label>
+                <input type="url" id="gh-url-v4" placeholder="https://raw.githubusercontent.com/usuario/neurovet/main/neurovet_v4.html" style="font-size:.75rem;padding:7px 9px;border:1.5px solid #bbf7d0;border-radius:7px;font-family:inherit;outline:none;color:var(--text);">
+              </div>
+              <div class="form-group">
+                <label style="font-size:.69rem;color:#166534;text-transform:uppercase;letter-spacing:.04em;">URL raw — neurovet_vademecum.html (opcional)</label>
+                <input type="url" id="gh-url-vad" placeholder="https://raw.githubusercontent.com/usuario/neurovet/main/neurovet_vademecum.html" style="font-size:.75rem;padding:7px 9px;border:1.5px solid #bbf7d0;border-radius:7px;font-family:inherit;outline:none;color:var(--text);">
+              </div>
+            </div>
+            <button class="btn btn-green btn-sm" onclick="fetchFromGitHub()" id="gh-fetch-btn">⬇️ Descargar desde GitHub</button>
+            <div id="gh-fetch-status" style="margin-top:8px;display:none;font-size:.79rem;"></div>
+          </div>
+          <div style="text-align:center;color:var(--text-soft);font-size:.76rem;margin-bottom:12px;letter-spacing:.03em;">— o seleccioná archivos manualmente —</div>
+          <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:9px;padding:11px 14px;margin-bottom:12px;font-size:.81rem;color:#92400e;">
+            <strong>Manual:</strong> descargá los HTML de GitHub → seleccioná o arrastrá abajo → Instalar
+            <br><span style="font-size:.73rem;color:#b45309;">📱 Celular: guardá el HTML → seleccionalo desde "Archivos"</span>
           </div>
           <div style="border:2px dashed var(--border);border-radius:10px;padding:20px;text-align:center;margin-bottom:12px;" id="drop-zone-update"
             ondragover="event.preventDefault();this.style.borderColor='var(--teal)'"
@@ -1256,6 +1303,45 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       </div></div></div>
     </div>
 
+    <!-- BIBLIOTECA -->
+    <div class="view" id="view-biblioteca">
+      <div style="margin-bottom:18px;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;">
+        <div>
+          <h2 style="font-family:'DM Serif Display',serif;font-size:1.25rem;">📚 Biblioteca de Recursos</h2>
+          <p style="font-size:.8rem;color:var(--text-soft);margin-top:2px;">PDFs, imágenes, videos, links — ordenados y vinculables a fichas clínicas</p>
+        </div>
+        <button class="btn btn-primary" onclick="abrirModalBib(null)">+ Agregar recurso</button>
+      </div>
+      <div class="bib-toolbar">
+        <input type="search" id="bib-search" placeholder="🔍 Buscar en la biblioteca..." oninput="renderBiblioteca()">
+        <select id="bib-filter-tipo" onchange="renderBiblioteca()">
+          <option value="">Todos los tipos</option>
+          <option value="pdf">📄 PDF</option>
+          <option value="image">🖼️ Imagen</option>
+          <option value="video">🎬 Video</option>
+          <option value="link">🔗 Link</option>
+        </select>
+        <select id="bib-filter-cat" onchange="renderBiblioteca()">
+          <option value="">Todas las categorías</option>
+          <option value="Neurología">Neurología</option>
+          <option value="Diagnóstico">Diagnóstico</option>
+          <option value="Tratamiento">Tratamiento</option>
+          <option value="Farmacología">Farmacología</option>
+          <option value="Imágenes">Imágenes</option>
+          <option value="Videos">Videos</option>
+          <option value="Links">Links</option>
+          <option value="General">General</option>
+        </select>
+        <select id="bib-sort" onchange="renderBiblioteca()">
+          <option value="az">A → Z</option>
+          <option value="za">Z → A</option>
+          <option value="new">Más reciente</option>
+          <option value="old">Más antiguo</option>
+        </select>
+      </div>
+      <div id="bib-grid" class="bib-grid"></div>
+    </div>
+
   </div><!-- /content -->
 </div><!-- /main -->
 </div><!-- /app -->
@@ -1264,6 +1350,87 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <div class="modal-overlay hidden" id="modal-delete"><div class="modal"><div class="modal-head"><h3>Eliminar ficha</h3><button class="close-btn" onclick="closeModal('modal-delete')">×</button></div><div class="modal-body"><p>¿Seguro de eliminar esta ficha? No se puede deshacer.</p></div><div class="modal-foot"><button class="btn btn-outline" onclick="closeModal('modal-delete')">Cancelar</button><button class="btn btn-danger" id="btn-del">Eliminar</button></div></div></div>
 
 <div class="modal-overlay hidden" id="modal-viewer"><div class="modal modal-lg"><div class="modal-head"><div><h3 id="vw-title">Ficha</h3><div id="vw-sub" style="font-size:.75rem;color:var(--text-soft);margin-top:2px;"></div></div><button class="close-btn" onclick="closeModal('modal-viewer')">×</button></div><div class="modal-body" id="vw-body"></div><div class="modal-foot"><button class="btn btn-outline" onclick="closeModal('modal-viewer')">Cerrar</button><button class="btn btn-primary" id="vw-edit">✏️ Editar</button><button class="btn btn-accent" id="vw-pdf">PDF</button></div></div></div>
+
+<!-- MODAL BIBLIOTECA — AGREGAR / EDITAR -->
+<div class="modal-overlay hidden" id="modal-bib-add">
+  <div class="modal modal-lg">
+    <div class="modal-head">
+      <h3 id="bib-add-title">Agregar recurso</h3>
+      <button class="close-btn" onclick="closeModal('modal-bib-add')">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="bib-dropzone" class="bib-dropzone" onclick="document.getElementById('bib-file-input').click()" ondragover="bibDragOver(event)" ondragleave="bibDragLeave(event)" ondrop="bibDrop(event)">
+        <div class="bib-dropzone-icon" id="bib-drop-icon">📁</div>
+        <div style="font-size:.84rem;font-weight:600;" id="bib-drop-text">Arrastrá un archivo o hacé clic para seleccionar</div>
+        <div style="font-size:.73rem;color:var(--text-soft);margin-top:4px;">PDF · JPG/PNG/GIF · MP4/WebM (video hasta ~10s)</div>
+        <input type="file" id="bib-file-input" style="display:none" accept=".pdf,image/*,video/mp4,video/webm,video/mov" onchange="bibHandleFile(this)">
+      </div>
+      <div class="form-group" style="margin-top:12px;">
+        <label>O ingresar URL externa (link, PDF online, imagen)</label>
+        <input type="url" id="bib-url" placeholder="https://" oninput="bibDetectUrlType()">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px;">
+        <div class="form-group">
+          <label>Título *</label>
+          <input type="text" id="bib-titulo" placeholder="Ej: Protocolo convulsiones felinos">
+        </div>
+        <div class="form-group">
+          <label>Categoría</label>
+          <select id="bib-categoria">
+            <option value="General">General</option>
+            <option value="Neurología">Neurología</option>
+            <option value="Diagnóstico">Diagnóstico</option>
+            <option value="Tratamiento">Tratamiento</option>
+            <option value="Farmacología">Farmacología</option>
+            <option value="Imágenes">Imágenes</option>
+            <option value="Videos">Videos</option>
+            <option value="Links">Links</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Descripción (opcional)</label>
+        <textarea id="bib-desc" rows="2" placeholder="Breve descripción del contenido, uso clínico, fuente..."></textarea>
+      </div>
+      <div class="form-group" style="position:relative;">
+        <label>Vincular a paciente (opcional)</label>
+        <input type="text" id="bib-pac-search" placeholder="Escribir nombre del paciente o propietario..." oninput="bibSearchPacientes(this.value)" autocomplete="off">
+        <div id="bib-pac-results" style="position:absolute;left:0;right:0;top:100%;border:1.5px solid var(--border);border-top:none;border-radius:0 0 8px 8px;max-height:130px;overflow-y:auto;display:none;background:var(--surface);z-index:200;box-shadow:0 4px 12px rgba(0,0,0,.1);"></div>
+        <div id="bib-pac-selected" style="margin-top:5px;font-size:.78rem;color:var(--teal-dark);display:none;"></div>
+        <input type="hidden" id="bib-pac-id">
+        <input type="hidden" id="bib-pac-email">
+      </div>
+      <div id="bib-tipo-display" style="font-size:.78rem;color:var(--teal-dark);margin-top:4px;min-height:18px;"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('modal-bib-add')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarItemBib()">💾 Guardar en biblioteca</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL BIBLIOTECA — VISOR -->
+<div class="modal-overlay hidden" id="modal-bib-viewer">
+  <div class="modal modal-lg">
+    <div class="modal-head">
+      <div>
+        <h3 id="bib-view-title">Recurso</h3>
+        <div id="bib-view-meta" style="font-size:.74rem;color:var(--text-soft);margin-top:2px;"></div>
+      </div>
+      <button class="close-btn" onclick="cerrarViewerBib()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="bib-viewer-content" id="bib-viewer-content"></div>
+      <div id="bib-view-desc" style="margin-top:12px;font-size:.83rem;color:var(--text-soft);line-height:1.5;"></div>
+      <div id="bib-view-pac" style="margin-top:8px;"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="cerrarViewerBib()">Cerrar</button>
+      <button class="btn btn-outline btn-sm" onclick="bibEditarDesdeViewer()">✏️ Editar</button>
+      <button class="btn btn-outline btn-sm" id="bib-view-link-btn" style="display:none;" onclick="bibAbrirLink()">🔗 Abrir link</button>
+    </div>
+  </div>
+</div>
 
 <div class="modal-overlay hidden" id="modal-turno"><div class="modal"><div class="modal-head"><h3 id="turno-modal-title">📅 Nuevo turno</h3><button class="close-btn" onclick="closeModal('modal-turno')">×</button></div><div class="modal-body"><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><div class="form-group"><label>Fecha *</label><input id="t-fecha" type="date"></div><div class="form-group"><label>Hora</label><input id="t-hora" type="time" value="10:00"></div></div><div class="form-group" style="margin-top:7px;"><label>Paciente</label><input id="t-pac" placeholder="Nombre del paciente"></div><div class="form-group"><label>Propietario / Tutor</label><input id="t-own" placeholder="Nombre del propietario"></div><div class="form-group"><label>Motivo</label><input id="t-mot" placeholder="Control neurológico, seguimiento..."></div><div class="form-group"><label>Notas</label><textarea id="t-notas" rows="2" placeholder="Observaciones adicionales..."></textarea></div><input type="hidden" id="t-editing-id"></div><div class="modal-foot"><button class="btn btn-outline" onclick="closeModal('modal-turno')">Cancelar</button><button class="btn btn-outline btn-sm" onclick="exportarTurnoGCalNuevo()" title="Agregar a Google Calendar después de guardar">📆 + Google Cal</button><button class="btn btn-primary" onclick="saveTurno()">💾 Guardar</button></div></div></div>
 
@@ -1402,7 +1569,7 @@ function gC(id){return[...document.querySelectorAll(`#${id} input:checked`)].map
 function sC(id,v=[]){document.querySelectorAll(`#${id} input[type=checkbox]`).forEach(c=>{c.checked=v.includes(c.value);c.closest('.check-item')?.classList.toggle('checked',c.checked);});}
 
 // ═══════════════════ NAV ═══════════════════
-const TITLES={dashboard:'Dashboard',patients:'Pacientes',tutores:'Tutores',historial:'Historial','nueva-ficha':'Nueva Ficha',agenda:'Agenda',estadisticas:'Estadísticas',sync:'Sincronización',backup:'Backup/Excel',protocolos:'📋 Protocolos Clínicos'};
+const TITLES={dashboard:'Dashboard',patients:'Pacientes',tutores:'Tutores',historial:'Historial','nueva-ficha':'Nueva Ficha',agenda:'Agenda',estadisticas:'Estadísticas',sync:'Sincronización',backup:'Backup/Excel',protocolos:'📋 Protocolos Clínicos',biblioteca:'📚 Biblioteca'};
 let navHistory=[];
 function navigate(v){
   const cur=document.querySelector('.view.active')?.id?.replace('view-','');
@@ -1425,6 +1592,7 @@ function _doNav(v){
   if(v==='historial')filterHist();if(v==='agenda')renderAgenda();
   if(v==='estadisticas')renderStats();if(v==='backup')updateBackupInfo();
   if(v==='protocolos')renderProtocolos();
+  if(v==='biblioteca')renderBiblioteca();
   document.getElementById('sidebar').classList.remove('open');
 }
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');}
@@ -3053,6 +3221,19 @@ function openUpdateModal(){
   });
   var btn = document.getElementById('update-install-btn');
   if(btn) btn.style.display='none';
+  // Restaurar URLs de GitHub guardadas
+  var ghStatus = document.getElementById('gh-fetch-status');
+  if(ghStatus){ ghStatus.style.display='none'; ghStatus.innerHTML=''; }
+  var ghBtn = document.getElementById('gh-fetch-btn');
+  if(ghBtn){ ghBtn.disabled=false; ghBtn.textContent='⬇️ Descargar desde GitHub'; }
+  try{
+    var sv4 = localStorage.getItem('nv4_gh_url_v4');
+    var svad = localStorage.getItem('nv4_gh_url_vad');
+    var inV4 = document.getElementById('gh-url-v4');
+    var inVad = document.getElementById('gh-url-vad');
+    if(inV4 && sv4) inV4.value = sv4;
+    if(inVad && svad) inVad.value = svad;
+  }catch(e){}
   var modal = document.getElementById('modal-update');
   if(modal) modal.classList.remove('hidden');
 }
@@ -3127,6 +3308,68 @@ function mostrarArchivosParaInstalar(){
   listEl.innerHTML = html;
   if(prevEl) prevEl.style.display = 'block';
   if(installBtn) installBtn.style.display = 'inline-flex';
+}
+
+async function fetchFromGitHub(){
+  var urlV4  = ((document.getElementById('gh-url-v4')  || {}).value || '').trim();
+  var urlVad = ((document.getElementById('gh-url-vad') || {}).value || '').trim();
+
+  if(!urlV4 && !urlVad){
+    showToast('Ingresá al menos una URL raw de GitHub','error');
+    return;
+  }
+
+  var btn      = document.getElementById('gh-fetch-btn');
+  var statusEl = document.getElementById('gh-fetch-status');
+  var instBtn  = document.getElementById('update-install-btn');
+
+  if(btn){ btn.disabled=true; btn.textContent='Descargando...'; }
+  if(instBtn) instBtn.style.display='none';
+  _updateFiles = {};
+
+  if(statusEl){
+    statusEl.style.display='block';
+    statusEl.innerHTML='<span style="color:#166534;">⏳ Conectando con GitHub...</span>';
+  }
+
+  // Guardar URLs para próximas veces
+  try{
+    if(urlV4)  localStorage.setItem('nv4_gh_url_v4',  urlV4);
+    if(urlVad) localStorage.setItem('nv4_gh_url_vad', urlVad);
+  }catch(e){}
+
+  var errors = [];
+
+  async function fetchOne(url, key){
+    try{
+      var r = await fetch(url, {cache:'no-cache'});
+      if(!r.ok) throw new Error('HTTP '+r.status+' — verificá que la URL sea raw y el repo sea público');
+      var txt = await r.text();
+      if(!txt || txt.length < 500) throw new Error('Archivo vacío o inválido');
+      _updateFiles[key] = txt;
+    }catch(e){
+      errors.push((key==='v4'?'neurovet_v4':'vademecum')+': '+e.message);
+    }
+  }
+
+  var promises = [];
+  if(urlV4)  promises.push(fetchOne(urlV4, 'v4'));
+  if(urlVad) promises.push(fetchOne(urlVad,'vad'));
+  await Promise.all(promises);
+
+  if(btn){ btn.disabled=false; btn.textContent='⬇️ Descargar desde GitHub'; }
+
+  if(errors.length){
+    if(statusEl){
+      statusEl.innerHTML='<div style="color:#dc2626;">❌ '+errors.join('<br>')+
+        '<br><small style="color:#b91c1c;">Asegurate de usar la URL <strong>Raw</strong> de GitHub (raw.githubusercontent.com) y que el repo sea <strong>público</strong>.</small></div>';
+    }
+    return;
+  }
+
+  if(statusEl){ statusEl.style.display='none'; }
+  mostrarArchivosParaInstalar();
+  showToast('✅ Archivos descargados de GitHub — revisá y hace clic en Instalar','success');
 }
 
 async function instalarActualizacion(){
@@ -6111,7 +6354,7 @@ function agregarEstudio(texto){
       var isSeen = _seenIds.indexOf(s.id) >= 0;
       var pat = (s.patients && s.patients.name) || s.patient_name || 'Paciente';
       var fecha = new Date(s.started_at).toLocaleString('es-AR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
-      var dur = s.duration_s ? Math.round(s.duration_s/60)+'min' : '?';
+      var dur = s.duration_seconds ? Math.round(s.duration_seconds/60)+'min' : '?';
       var row = document.createElement('div');
       row.style.cssText = 'padding:8px 10px;border-radius:8px;margin-bottom:6px;cursor:pointer;'
         +'background:'+(isSeen?'#f9fafb':'#fff5f5')+';border:1px solid '+(isSeen?'#e5e7eb':'#fecaca')+';transition:.15s;';
@@ -6132,7 +6375,7 @@ function agregarEstudio(texto){
       var sb = await initSB();
       var cutoff = new Date(Date.now() - 7*24*60*60*1000).toISOString();
       var res = await sb.from('seizures')
-        .select('id,started_at,type_label,duration_s,is_status,patient_name,patients(name,breed)')
+        .select('id,started_at,type_label,duration_seconds,is_status,patient_name,patients(name,breed)')
         .gte('started_at', cutoff)
         .order('started_at', {ascending:false})
         .limit(20);
@@ -6163,6 +6406,63 @@ function agregarEstudio(texto){
     renderCrisisPanel();
   };
 
+  // ── Push Notifications (Web Push + Service Worker) ──────────
+
+  var VAPID_PUBLIC = 'BGE5xfK0zmGu2s08qH0Y0h3HY94WQ4Ma3CkDtgz2yOs43Ea7uzLPoJ9F2uzNhu_v8gbFPKaXrvBCx3ChPiSjpJw';
+
+  function urlB64ToUint8(b64){
+    var pad = '='.repeat((4 - b64.length % 4) % 4);
+    var b   = (b64 + pad).replace(/-/g,'+').replace(/_/g,'/');
+    var raw = window.atob(b);
+    var out = new Uint8Array(raw.length);
+    for(var i=0;i<raw.length;i++) out[i]=raw.charCodeAt(i);
+    return out;
+  }
+
+  async function savePushSub(sub){
+    try{
+      var sb = await initSB();
+      var j  = sub.toJSON();
+      await sb.from('push_subscriptions').upsert({
+        user_label:  'sergio',
+        endpoint:    j.endpoint,
+        p256dh:      j.keys.p256dh,
+        auth:        j.keys.auth,
+        updated_at:  new Date().toISOString()
+      },{onConflict:'user_label'});
+    }catch(e){ console.log('savePushSub:', e.message); }
+  }
+
+  async function initPush(){
+    if(!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    try{
+      var reg = await navigator.serviceWorker.register('./sw.js');
+
+      // Cuando el SW manda OPEN_CRISIS_PANEL, abrir el panel
+      navigator.serviceWorker.addEventListener('message', function(ev){
+        if(ev.data && ev.data.type === 'OPEN_CRISIS_PANEL'){
+          _panelOpen = false;
+          toggleCrisisPanel();
+        }
+      });
+
+      var sub = await reg.pushManager.getSubscription();
+      if(sub){ await savePushSub(sub); return; } // ya suscripto
+
+      // Pedir permiso solo si no fue denegado antes
+      if(Notification.permission === 'denied') return;
+      var perm = await Notification.requestPermission();
+      if(perm !== 'granted') return;
+
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlB64ToUint8(VAPID_PUBLIC)
+      });
+      await savePushSub(sub);
+      console.log('Push suscripción guardada');
+    }catch(e){ console.log('initPush:', e.message); }
+  }
+
   // ── Init ────────────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', function(){
     setTimeout(function(){
@@ -6170,7 +6470,504 @@ function agregarEstudio(texto){
       pollSeizures();
       setInterval(pollSeizures, 45000);
     }, 1500);
+    // Service Worker + Push (delay mayor para no interferir con el arranque)
+    setTimeout(initPush, 4000);
   });
+
+})();
+</script>
+
+<!-- ══ BIBLIOTECA ══════════════════════════════════════════ -->
+<script>
+(function(){
+'use strict';
+
+var _bibDB=null;
+var _bibCurrentId=null;  // id being edited (null = new)
+var _bibFile=null;       // {tipo, nombre, tamano, mimeType, dataUrl} or {existing:true,...}
+var _bibUrlType='link';
+var _bibViewItem=null;   // item shown in viewer
+
+// ── helpers ─────────────────────────────────────────────────
+function eH(s){return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+
+// ── IndexedDB ───────────────────────────────────────────────
+function bibInit(){
+  return new Promise(function(res,rej){
+    if(_bibDB){res(_bibDB);return;}
+    var r=indexedDB.open('neurovet_bib_db',1);
+    r.onupgradeneeded=function(e){
+      var db=e.target.result;
+      if(!db.objectStoreNames.contains('bibItems')){
+        var st=db.createObjectStore('bibItems',{keyPath:'id',autoIncrement:true});
+        st.createIndex('titulo','titulo',{unique:false});
+        st.createIndex('categoria','categoria',{unique:false});
+        st.createIndex('tipo','tipo',{unique:false});
+        st.createIndex('fecha','fecha',{unique:false});
+      }
+    };
+    r.onsuccess=function(e){_bibDB=e.target.result;res(_bibDB);};
+    r.onerror=function(e){console.error('BibDB error',e);rej(e);};
+  });
+}
+
+function bibGetAll(){
+  return new Promise(function(res){
+    if(!_bibDB){res([]);return;}
+    var tx=_bibDB.transaction('bibItems','readonly');
+    var req=tx.objectStore('bibItems').getAll();
+    req.onsuccess=function(){res(req.result||[]);};
+    req.onerror=function(){res([]);};
+  });
+}
+
+function bibSave(item){
+  return new Promise(function(res,rej){
+    if(!_bibDB){rej('DB not ready');return;}
+    var tx=_bibDB.transaction('bibItems','readwrite');
+    var req=item.id?tx.objectStore('bibItems').put(item):tx.objectStore('bibItems').add(item);
+    req.onsuccess=function(){res(req.result);};
+    req.onerror=function(){rej(req.error);};
+  });
+}
+
+function bibDel(id){
+  return new Promise(function(res,rej){
+    if(!_bibDB){rej('DB not ready');return;}
+    var tx=_bibDB.transaction('bibItems','readwrite');
+    var req=tx.objectStore('bibItems').delete(id);
+    req.onsuccess=function(){res();};
+    req.onerror=function(){rej(req.error);};
+  });
+}
+
+function bibGetById(id){
+  return new Promise(function(res){
+    if(!_bibDB){res(null);return;}
+    var tx=_bibDB.transaction('bibItems','readonly');
+    var req=tx.objectStore('bibItems').get(id);
+    req.onsuccess=function(){res(req.result||null);};
+    req.onerror=function(){res(null);};
+  });
+}
+
+// ── Render grid ─────────────────────────────────────────────
+window.renderBiblioteca=async function(){
+  var grid=document.getElementById('bib-grid');
+  if(!grid)return;
+  grid.innerHTML='<div class="bib-empty"><div style="font-size:2rem;">⏳</div><div style="margin-top:8px;font-size:.85rem;">Cargando...</div></div>';
+
+  try{await bibInit();}catch(e){
+    grid.innerHTML='<div class="bib-empty"><div style="font-size:.85rem;color:#dc2626;">No se pudo abrir la base de datos. Actualizá la página.</div></div>';
+    return;
+  }
+
+  var items=await bibGetAll();
+  var q=((document.getElementById('bib-search')||{}).value||'').trim().toLowerCase();
+  var ft=((document.getElementById('bib-filter-tipo')||{}).value||'');
+  var fc=((document.getElementById('bib-filter-cat')||{}).value||'');
+  var srt=((document.getElementById('bib-sort')||{}).value||'az');
+
+  if(q)items=items.filter(function(it){
+    return (it.titulo||'').toLowerCase().includes(q)||(it.descripcion||'').toLowerCase().includes(q)||(it.pacienteRef||'').toLowerCase().includes(q)||(it.categoria||'').toLowerCase().includes(q);
+  });
+  if(ft)items=items.filter(function(it){return it.tipo===ft;});
+  if(fc)items=items.filter(function(it){return it.categoria===fc;});
+
+  items.sort(function(a,b){
+    if(srt==='az')return (a.titulo||'').localeCompare(b.titulo||'','es',{sensitivity:'base'});
+    if(srt==='za')return (b.titulo||'').localeCompare(a.titulo||'','es',{sensitivity:'base'});
+    if(srt==='new')return (b.fecha||0)-(a.fecha||0);
+    return (a.fecha||0)-(b.fecha||0);
+  });
+
+  if(!items.length){
+    grid.innerHTML='<div class="bib-empty"><div style="font-size:3rem;margin-bottom:12px;">📚</div>'
+      +'<div style="font-size:.95rem;font-weight:600;margin-bottom:6px;">'+(q||ft||fc?'Sin resultados':'Tu biblioteca está vacía')+'</div>'
+      +'<div style="font-size:.8rem;">'+(q||ft||fc?'Probá con otros filtros o borrá la búsqueda':'Hacé clic en <strong>+ Agregar recurso</strong> para empezar')+'</div></div>';
+    return;
+  }
+
+  var tIcon={pdf:'📄',image:'🖼️',video:'🎬',link:'🔗',other:'📎'};
+  var tCls={pdf:'bib-badge-pdf',image:'bib-badge-image',video:'bib-badge-video',link:'bib-badge-link',other:'bib-badge-other'};
+
+  grid.innerHTML=items.map(function(it){
+    var icon=tIcon[it.tipo]||'📎';
+    var thumb='<div class="bib-thumb">';
+    if(it.tipo==='image'&&(it.dataUrl||it.url)){
+      thumb+='<img src="'+eH(it.dataUrl||it.url)+'" alt="" loading="lazy" onerror="this.parentElement.innerHTML=\'🖼️\'">';
+    }else if(it.tipo==='video'&&it.dataUrl){
+      thumb+='<video src="'+eH(it.dataUrl)+'" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;"></video>';
+    }else{
+      thumb+=icon;
+    }
+    thumb+='</div>';
+
+    var pac=it.pacienteRef?'<div class="bib-pac-link">🐾 '+eH(it.pacienteRef)+'</div>':'';
+
+    return '<div class="bib-card" onclick="verItemBib('+it.id+')" title="'+eH(it.titulo||'')+'">'
+      +thumb
+      +'<div class="bib-card-body">'
+      +'<div class="bib-card-title">'+eH(it.titulo||'Sin título')+'</div>'
+      +(it.descripcion?'<div class="bib-card-desc">'+eH(it.descripcion)+'</div>':'')
+      +'<div class="bib-badges">'
+      +'<span class="bib-badge '+eH(tCls[it.tipo]||'bib-badge-other')+'">'+eH(it.tipo||'otro')+'</span>'
+      +(it.categoria&&it.categoria!=='General'?'<span class="bib-badge bib-badge-cat">'+eH(it.categoria)+'</span>':'')
+      +'</div>'
+      +pac
+      +'<div class="bib-card-actions" onclick="event.stopPropagation()">'
+      +'<button onclick="event.stopPropagation();verItemBib('+it.id+')">👁 Ver</button>'
+      +'<button onclick="event.stopPropagation();abrirModalBib('+it.id+')">✏️ Editar</button>'
+      +'<button onclick="event.stopPropagation();eliminarItemBib('+it.id+')" style="color:#dc2626;border-color:#fecaca;">🗑</button>'
+      +'</div>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+};
+
+// ── Add / Edit modal ─────────────────────────────────────────
+window.abrirModalBib=async function(id){
+  _bibFile=null;
+  _bibUrlType='link';
+  _bibCurrentId=id||null;
+
+  ['bib-titulo','bib-url','bib-desc','bib-pac-search','bib-pac-id','bib-pac-email'].forEach(function(f){
+    var el=document.getElementById(f);if(el)el.value='';
+  });
+  var el=function(id){return document.getElementById(id);};
+  if(el('bib-drop-text'))el('bib-drop-text').textContent='Arrastrá un archivo o hacé clic para seleccionar';
+  if(el('bib-drop-icon'))el('bib-drop-icon').textContent='📁';
+  if(el('bib-dropzone'))el('bib-dropzone').style.borderColor='';
+  if(el('bib-categoria'))el('bib-categoria').value='General';
+  if(el('bib-pac-selected')){el('bib-pac-selected').style.display='none';el('bib-pac-selected').textContent='';}
+  if(el('bib-pac-results'))el('bib-pac-results').style.display='none';
+  if(el('bib-tipo-display'))el('bib-tipo-display').textContent='';
+  if(el('bib-add-title'))el('bib-add-title').textContent=id?'Editar recurso':'Agregar recurso';
+
+  if(id){
+    try{await bibInit();}catch(e){}
+    var item=await bibGetById(id);
+    if(item){
+      function sv(fid,val){var e=document.getElementById(fid);if(e)e.value=val||'';}
+      sv('bib-titulo',item.titulo);
+      sv('bib-url',item.url||item.urlExterna||'');
+      sv('bib-desc',item.descripcion||'');
+      if(document.getElementById('bib-categoria'))document.getElementById('bib-categoria').value=item.categoria||'General';
+      if(item.pacienteRef){
+        sv('bib-pac-search',item.pacienteRef);
+        sv('bib-pac-id',item.pacienteId||'');
+        sv('bib-pac-email',item.pacienteEmail||'');
+        var ps=el('bib-pac-selected');
+        if(ps){ps.style.display='block';ps.textContent='🐾 '+item.pacienteRef+(item.pacienteEmail?' ('+item.pacienteEmail+')':'');}
+      }
+      var td=el('bib-tipo-display');
+      if(td)td.textContent='Tipo: '+item.tipo+(item.nombreArchivo?' — '+item.nombreArchivo:'')+(item.dataUrl?' (archivo guardado)':item.url?' (URL)':'');
+      _bibFile={existing:true,tipo:item.tipo,dataUrl:item.dataUrl||null,url:item.url||item.urlExterna||'',nombre:item.nombreArchivo||''};
+      if(item.dataUrl||item.url){
+        var dz=el('bib-dropzone');
+        if(dz)dz.style.borderColor='var(--teal)';
+        var dt=el('bib-drop-text');
+        if(dt)dt.textContent=item.nombreArchivo||'Archivo existente';
+        var di=el('bib-drop-icon');
+        if(di)di.textContent={pdf:'📄',image:'🖼️',video:'🎬',link:'🔗'}[item.tipo]||'📎';
+      }
+    }
+  }
+
+  var m=document.getElementById('modal-bib-add');
+  if(m)m.classList.remove('hidden');
+};
+
+// ── File handling ────────────────────────────────────────────
+window.bibHandleFile=function(input){
+  var f=(input.files||[])[0];if(f)bibProcessFile(f);
+  input.value=''; // allow re-selection same file
+};
+window.bibDragOver=function(e){e.preventDefault();var d=document.getElementById('bib-dropzone');if(d)d.classList.add('dragover');};
+window.bibDragLeave=function(){var d=document.getElementById('bib-dropzone');if(d)d.classList.remove('dragover');};
+window.bibDrop=function(e){
+  e.preventDefault();
+  var d=document.getElementById('bib-dropzone');if(d)d.classList.remove('dragover');
+  var f=(e.dataTransfer.files||[])[0];if(f)bibProcessFile(f);
+};
+
+function bibProcessFile(file){
+  var tipo='other';
+  if(file.type==='application/pdf')tipo='pdf';
+  else if(file.type.startsWith('image/'))tipo='image';
+  else if(file.type.startsWith('video/'))tipo='video';
+
+  if(tipo==='video'&&file.size>50*1024*1024){
+    if(typeof showToast==='function')showToast('El video es muy grande (max 50MB)','error');
+    return;
+  }
+
+  var sizeKB=Math.round(file.size/1024);
+  var sizeStr=sizeKB>=1024?(Math.round(sizeKB/102.4)/10)+'MB':sizeKB+'KB';
+
+  var d=function(id){return document.getElementById(id);};
+  if(d('bib-drop-text'))d('bib-drop-text').textContent=file.name+' ('+sizeStr+')';
+  if(d('bib-drop-icon'))d('bib-drop-icon').textContent={pdf:'📄',image:'🖼️',video:'🎬',other:'📎'}[tipo];
+  if(d('bib-tipo-display'))d('bib-tipo-display').textContent='Tipo detectado: '+tipo;
+  if(d('bib-dropzone'))d('bib-dropzone').style.borderColor='var(--teal)';
+
+  // Auto-fill title
+  var tEl=d('bib-titulo');
+  if(tEl&&!tEl.value){
+    tEl.value=file.name.replace(/\.[^/.]+$/,'').replace(/[-_]+/g,' ').trim();
+  }
+
+  // Auto-set category
+  var catEl=d('bib-categoria');
+  if(catEl&&catEl.value==='General'){
+    if(tipo==='image')catEl.value='Imágenes';
+    else if(tipo==='video')catEl.value='Videos';
+  }
+
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    _bibFile={tipo:tipo,nombre:file.name,tamano:file.size,mimeType:file.type,dataUrl:ev.target.result};
+  };
+  reader.readAsDataURL(file);
+}
+
+window.bibDetectUrlType=function(){
+  var url=((document.getElementById('bib-url')||{}).value||'').trim();
+  var td=document.getElementById('bib-tipo-display');
+  if(!url){if(td)td.textContent='';return;}
+  var t='link';
+  if(/\.pdf(\?|$|#)/i.test(url))t='pdf';
+  else if(/\.(jpe?g|png|gif|webp|svg)(\?|$|#)/i.test(url))t='image';
+  else if(/\.(mp4|webm|mov|avi)(\?|$|#)/i.test(url))t='video';
+  _bibUrlType=t;
+  if(td)td.textContent='Tipo detectado: '+t;
+
+  // Auto-set categoria for links
+  var catEl=document.getElementById('bib-categoria');
+  if(catEl&&catEl.value==='General'&&t==='link')catEl.value='Links';
+};
+
+// ── Patient search ───────────────────────────────────────────
+window.bibSearchPacientes=function(q){
+  var res=document.getElementById('bib-pac-results');
+  if(!res)return;
+  if(!q||q.length<2){res.style.display='none';return;}
+  var ql=q.toLowerCase();
+  var recs=window.records||[];
+  var hits=recs.filter(function(r){
+    return ((r.nombre||r.paciente||'').toLowerCase().includes(ql))||
+           ((r.propietario||r.tutor||r.owner||'').toLowerCase().includes(ql));
+  }).slice(0,8);
+  if(!hits.length){res.style.display='none';return;}
+  res.style.display='block';
+  res.innerHTML=hits.map(function(r){
+    var n=r.nombre||r.paciente||'Paciente';
+    var o=r.propietario||r.tutor||r.owner||'';
+    var id=r.id||r._id||'';
+    var em=r.correo||r.email||'';
+    return '<div class="bib-pac-dropdown-item" onmousedown="bibSelectPac(\''+n.replace(/'/g,"\\'")
+      +'\',\''+String(id).replace(/'/g,"\\'")+'\',\''+em.replace(/'/g,"\\'")+'\')">'
+      +'<span style="font-weight:600;">'+eH(n)+'</span>'
+      +(o?' <span style="color:var(--text-soft);font-size:.73rem;">— '+eH(o)+'</span>':'')
+      +(em?' <span style="color:var(--text-soft);font-size:.7rem;">'+eH(em)+'</span>':'')
+      +'</div>';
+  }).join('');
+};
+
+window.bibSelectPac=function(name,id,email){
+  function sv(fid,val){var e=document.getElementById(fid);if(e)e.value=val||'';}
+  sv('bib-pac-search',name);sv('bib-pac-id',id);sv('bib-pac-email',email);
+  var sel=document.getElementById('bib-pac-selected');
+  if(sel){sel.style.display='block';sel.textContent='🐾 '+name+(email?' ('+email+')':'');}
+  var res=document.getElementById('bib-pac-results');
+  if(res)res.style.display='none';
+};
+
+document.addEventListener('click',function(e){
+  var res=document.getElementById('bib-pac-results');
+  var inp=document.getElementById('bib-pac-search');
+  if(res&&inp&&!inp.contains(e.target)&&!res.contains(e.target))res.style.display='none';
+});
+
+// ── Save ────────────────────────────────────────────────────
+window.guardarItemBib=async function(){
+  var g=function(id){return(document.getElementById(id)||{}).value||'';};
+  var titulo=g('bib-titulo').trim();
+  if(!titulo){if(typeof showToast==='function')showToast('El título es obligatorio','error');return;}
+
+  var url=(g('bib-url')||'').trim();
+  var desc=g('bib-desc').trim();
+  var cat=g('bib-categoria')||'General';
+  var pacRef=g('bib-pac-search').trim();
+  var pacId=g('bib-pac-id');
+  var pacEmail=g('bib-pac-email');
+
+  var tipo='link';
+  var dataUrl=null;
+  var nombre='';
+  var tamano=0;
+  var mimeType='';
+
+  if(_bibFile&&!_bibFile.existing){
+    tipo=_bibFile.tipo||'other';
+    dataUrl=_bibFile.dataUrl||null;
+    nombre=_bibFile.nombre||'';
+    tamano=_bibFile.tamano||0;
+    mimeType=_bibFile.mimeType||'';
+  }else if(_bibFile&&_bibFile.existing){
+    tipo=_bibFile.tipo||'other';
+    // Preserve existing file data from DB (will be re-read below)
+    nombre=_bibFile.nombre||'';
+  }else if(url){
+    tipo=_bibUrlType||'link';
+  }else{
+    tipo='other';
+  }
+
+  try{await bibInit();}catch(e){
+    if(typeof showToast==='function')showToast('Error al conectar base de datos','error');return;
+  }
+
+  var item={
+    titulo:titulo,tipo:tipo,categoria:cat,descripcion:desc,
+    url:url,urlExterna:url,dataUrl:dataUrl,
+    nombreArchivo:nombre,mimeType:mimeType,tamano:tamano,
+    pacienteRef:pacRef,pacienteId:pacId,pacienteEmail:pacEmail,
+    fecha:Date.now()
+  };
+
+  if(_bibCurrentId){
+    item.id=_bibCurrentId;
+    if(_bibFile&&_bibFile.existing){
+      var orig=await bibGetById(_bibCurrentId);
+      if(orig){
+        item.dataUrl=item.dataUrl||orig.dataUrl||null;
+        item.url=item.url||orig.url||orig.urlExterna||'';
+        item.urlExterna=item.urlExterna||orig.urlExterna||orig.url||'';
+        item.nombreArchivo=item.nombreArchivo||orig.nombreArchivo||'';
+        item.mimeType=item.mimeType||orig.mimeType||'';
+        item.tamano=item.tamano||orig.tamano||0;
+      }
+    }
+  }
+
+  try{
+    await bibSave(item);
+    if(typeof closeModal==='function')closeModal('modal-bib-add');
+    _bibFile=null;_bibCurrentId=null;
+    if(typeof showToast==='function')showToast((_bibCurrentId?'Actualizado':'✅ Guardado')+' en la biblioteca','success');
+    renderBiblioteca();
+  }catch(e){
+    if(typeof showToast==='function')showToast('Error al guardar: '+e,'error');
+  }
+};
+
+// ── Viewer ───────────────────────────────────────────────────
+window.verItemBib=async function(id){
+  try{await bibInit();}catch(e){}
+  var item=await bibGetById(id);
+  if(!item)return;
+  _bibViewItem=item;
+
+  var m=document.getElementById('modal-bib-viewer');
+  if(!m)return;
+
+  var g=function(eid){return document.getElementById(eid);};
+
+  if(g('bib-view-title'))g('bib-view-title').textContent=item.titulo||'Recurso';
+
+  if(g('bib-view-meta')){
+    var d=item.fecha?new Date(item.fecha).toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'}):'';
+    var parts=[item.tipo,item.categoria,d,item.nombreArchivo].filter(Boolean);
+    g('bib-view-meta').textContent=parts.join(' · ');
+  }
+
+  var content=g('bib-viewer-content');
+  if(content){
+    content.innerHTML='';
+    var src=item.dataUrl||item.url||item.urlExterna||'';
+    if(item.tipo==='pdf'){
+      if(src){
+        content.innerHTML='<iframe src="'+eH(src)+(item.dataUrl?'':'')+'" style="width:100%;height:62vh;border:none;border-radius:7px;" allow="fullscreen"></iframe>';
+      }else{
+        content.innerHTML='<div style="padding:50px;text-align:center;color:var(--text-soft);">No hay archivo PDF disponible</div>';
+      }
+    }else if(item.tipo==='image'){
+      content.innerHTML='<img src="'+eH(src)+'" alt="'+eH(item.titulo||'')+'" style="max-width:100%;max-height:62vh;object-fit:contain;border-radius:8px;" onerror="this.outerHTML=\'<div style=padding:40px;text-align:center>🖼️ No se pudo cargar la imagen</div>\'">';
+    }else if(item.tipo==='video'){
+      content.innerHTML='<video controls playsinline src="'+eH(src)+'" style="max-width:100%;max-height:62vh;border-radius:8px;background:#000;"></video>';
+    }else if(src){
+      content.innerHTML='<div style="text-align:center;padding:44px 20px;">'
+        +'<div style="font-size:3rem;margin-bottom:14px;">🔗</div>'
+        +'<div style="font-size:.85rem;color:var(--text-soft);margin-bottom:14px;word-break:break-all;">'+eH(src)+'</div>'
+        +'<button class="btn btn-primary" onclick="window.open(\''+eH(src)+'\',\'_blank\')">Abrir en nueva pestaña</button>'
+        +'</div>';
+    }else{
+      content.innerHTML='<div style="padding:50px;text-align:center;color:var(--text-soft);">Sin contenido para mostrar</div>';
+    }
+  }
+
+  if(g('bib-view-desc'))g('bib-view-desc').textContent=item.descripcion||'';
+
+  if(g('bib-view-pac')){
+    g('bib-view-pac').innerHTML=item.pacienteRef
+      ?'<div class="bib-pac-link" style="font-size:.82rem;">🐾 Vinculado a: <strong>'+eH(item.pacienteRef)+'</strong>'+(item.pacienteEmail?' <span style="color:var(--text-soft);font-size:.76rem;">('+eH(item.pacienteEmail)+')</span>':'')+'</div>'
+      :'';
+  }
+
+  var lb=g('bib-view-link-btn');
+  if(lb)lb.style.display=(item.url||item.urlExterna)?'inline-flex':'none';
+
+  m.classList.remove('hidden');
+};
+
+window.cerrarViewerBib=function(){
+  if(typeof closeModal==='function')closeModal('modal-bib-viewer');
+  var c=document.getElementById('bib-viewer-content');
+  if(c)c.innerHTML=''; // free video/iframe resources
+  _bibViewItem=null;
+};
+
+window.bibEditarDesdeViewer=function(){
+  if(!_bibViewItem)return;
+  var id=_bibViewItem.id;
+  cerrarViewerBib();
+  setTimeout(function(){abrirModalBib(id);},120);
+};
+
+window.bibAbrirLink=function(){
+  if(!_bibViewItem)return;
+  var url=_bibViewItem.url||_bibViewItem.urlExterna||'';
+  if(url)window.open(url,'_blank');
+};
+
+// ── Delete ───────────────────────────────────────────────────
+window.eliminarItemBib=async function(id){
+  if(!confirm('¿Eliminar este recurso de la biblioteca? No se puede deshacer.'))return;
+  try{
+    await bibInit();
+    await bibDel(id);
+    if(typeof showToast==='function')showToast('Recurso eliminado','success');
+    renderBiblioteca();
+  }catch(e){
+    if(typeof showToast==='function')showToast('Error al eliminar','error');
+  }
+};
+
+// ── Conexión desde fichas clínicas ──────────────────────────
+// Para mostrar recursos de biblioteca relacionados dentro de una ficha,
+// llamar: getBibItemsPorPaciente(email, nombre) → Promise<items[]>
+window.getBibItemsPorPaciente=async function(email,nombre){
+  try{
+    await bibInit();
+    var all=await bibGetAll();
+    return all.filter(function(it){
+      if(email&&it.pacienteEmail&&it.pacienteEmail.toLowerCase()===email.toLowerCase())return true;
+      if(nombre&&it.pacienteRef&&it.pacienteRef.toLowerCase()===nombre.toLowerCase())return true;
+      return false;
+    });
+  }catch(e){return[];}
+};
 
 })();
 </script>
