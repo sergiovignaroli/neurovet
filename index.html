@@ -453,6 +453,25 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
         <div><div style="font-weight:700;font-size:.88rem;">Nueva consulta — paciente existente</div><div id="nc-name" style="font-size:.78rem;opacity:.85;"></div></div>
       </div>
+      <!-- MEDICACIÓN EN CURSO -->
+      <div id="med-banner" style="display:none;background:linear-gradient(135deg,#fef9c3,#fef3c7);border:1.5px solid #fbbf24;border-radius:10px;padding:12px 16px;margin-bottom:10px;">
+        <div style="display:flex;align-items:flex-start;gap:10px;">
+          <span style="font-size:1.3rem;">💊</span>
+          <div style="flex:1;">
+            <div style="font-weight:700;font-size:.86rem;color:#92400e;margin-bottom:5px;">Medicación en curso — última consulta registrada</div>
+            <div id="med-banner-text" style="font-size:.8rem;color:#78350f;white-space:pre-wrap;line-height:1.6;"></div>
+          </div>
+          <button type="button" onclick="document.getElementById('med-banner').style.display='none'" style="background:none;border:none;font-size:1.1rem;cursor:pointer;color:#92400e;padding:0;line-height:1;">✕</button>
+        </div>
+      </div>
+      <!-- BIBLIOTECA VINCULADA AL PACIENTE -->
+      <div id="bib-ficha-panel" style="display:none;background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1.5px solid #38bdf8;border-radius:10px;padding:12px 16px;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div style="font-weight:700;font-size:.86rem;color:#0369a1;">📚 Recursos de biblioteca vinculados al paciente</div>
+          <button type="button" onclick="document.getElementById('bib-ficha-panel').style.display='none'" style="background:none;border:none;font-size:1.1rem;cursor:pointer;color:#0369a1;padding:0;line-height:1;">✕</button>
+        </div>
+        <div id="bib-ficha-list" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+      </div>
       <div class="spec-tabs" id="spec-tabs">
         <div class="spec-tab active" onclick="switchSpec('neurologia',this)">🧠 Neurología</div>
         <div class="spec-tab" onclick="switchSpec('cardiologia',this)">❤️ Cardiología</div>
@@ -2025,6 +2044,10 @@ function loadRecord(id){
   }
   // Historia: mostrar botón si es nueva ficha para paciente existente
   if(r.paciente) setTimeout(function(){if(typeof window._histCheck==='function')window._histCheck(r.paciente,r.owner,r.id);},300);
+  // Fix 3: medicación actual visible
+  _mostrarMedBanner(r);
+  // Fix 4: recursos de biblioteca vinculados
+  _mostrarBibFicha(r.paciente||r.owner||'');
 }
 
 function clearForm(){
@@ -2040,6 +2063,13 @@ function clearForm(){
   ['f-especie','f-sexo','f-tono','f-atrofia','f-ss-t','f-ss-p','f-ss-per','f-sp-t','f-sp-p','f-sp-c','f-dc','f-dtl','f-dls','f-vej','f-esf','f-cat','f-loc-ic','f-loc-esp','f-pron','c-ritmo','c-pulso','c-soplo','c-soplo-loc','c-fremito','c-mucosas','c-trc','c-yug','c-edema','c-clase','c-dxp','c-prox','c-pron','d-dist','d-prurito','d-dx','d-prox','d-pron'].forEach(id=>{const el=document.getElementById(id);if(el)el.selectedIndex=0;});
   window._cd={};buildPT();buildRT();buildRF();
 
+  // Reset med-banner y bib-ficha-panel
+  var medBanner=document.getElementById('med-banner');
+  if(medBanner) medBanner.style.display='none';
+  var bibFichaPanel=document.getElementById('bib-ficha-panel');
+  if(bibFichaPanel) bibFichaPanel.style.display='none';
+  var bibFichaList=document.getElementById('bib-ficha-list');
+  if(bibFichaList) bibFichaList.innerHTML='';
   // Reset SDC banner on new ficha
   var sdcBanner = document.getElementById('sdc-link-banner');
   if(sdcBanner){ sdcBanner.style.display='none'; }
@@ -2053,6 +2083,62 @@ function clearForm(){
     var el=document.getElementById(id);
     if(el) el.value='';
   });
+}
+
+// ═══════════════════ MED BANNER + BIB FICHA ═══════════════════
+function _mostrarMedBanner(r){
+  var ban=document.getElementById('med-banner');
+  var txt=document.getElementById('med-banner-text');
+  if(!ban||!txt){return;}
+  var meds=[];
+  // Primero intentar mostrar medicación de la misma ficha
+  if(r.trat&&r.trat.trim()) meds.push('🧠 Neurología:\n'+r.trat.trim());
+  if(r.cTrat&&r.cTrat.trim()) meds.push('❤️ Cardiología:\n'+r.cTrat.trim());
+  if(r.dTrat&&r.dTrat.trim()) meds.push('🛡️ Dermatología:\n'+r.dTrat.trim());
+  if(r.cdsTratFarm&&r.cdsTratFarm.trim()) meds.push('🐾 CDS Farmacológico:\n'+r.cdsTratFarm.trim());
+  // Si la ficha actual no tiene trat, buscar en la consulta previa más reciente del mismo paciente
+  if(!meds.length&&r.paciente){
+    var prev=(records||[]).filter(function(x){
+      return x.id!==r.id && x.paciente===r.paciente;
+    }).sort(function(a,b){return (b.fecha||'').localeCompare(a.fecha||'');});
+    if(prev.length){
+      var p=prev[0];
+      if(p.trat&&p.trat.trim()) meds.push('🧠 Neurología:\n'+p.trat.trim());
+      if(p.cTrat&&p.cTrat.trim()) meds.push('❤️ Cardiología:\n'+p.cTrat.trim());
+      if(p.dTrat&&p.dTrat.trim()) meds.push('🛡️ Dermatología:\n'+p.dTrat.trim());
+      if(p.cdsTratFarm&&p.cdsTratFarm.trim()) meds.push('🐾 CDS Farmacológico:\n'+p.cdsTratFarm.trim());
+    }
+  }
+  if(meds.length){
+    txt.textContent=meds.join('\n\n');
+    ban.style.display='block';
+  } else {
+    ban.style.display='none';
+  }
+}
+
+function _mostrarBibFicha(nombre){
+  var panel=document.getElementById('bib-ficha-panel');
+  var list=document.getElementById('bib-ficha-list');
+  if(!panel||!list){return;}
+  panel.style.display='none';
+  list.innerHTML='';
+  if(!nombre){return;}
+  if(typeof bibGetByPaciente!=='function'){return;}
+  bibGetByPaciente(nombre).then(function(items){
+    if(!items||!items.length){panel.style.display='none';return;}
+    list.innerHTML=items.map(function(it){
+      var ic=it.tipo==='link'?'🔗':it.tipo==='imagen'?'🖼️':it.tipo==='video'?'🎬':it.tipo==='audio'?'🎵':'📄';
+      var url=it.url||it.urlExterna||'';
+      var hasUrl=!!url;
+      var tag=hasUrl?'a':'span';
+      return '<'+tag+(hasUrl?' href="'+url+'" target="_blank" rel="noopener"':'')+
+        ' style="display:inline-flex;align-items:center;gap:5px;background:#bae6fd;border:1px solid #38bdf8;border-radius:7px;padding:5px 11px;'+(hasUrl?'text-decoration:none;':'')+'color:#0369a1;font-size:.78rem;font-weight:600;cursor:'+(hasUrl?'pointer':'default')+';">'+
+        ic+' '+(it.titulo||'Sin título').replace(/</g,'&lt;').replace(/>/g,'&gt;')+
+        '</'+tag+'>';
+    }).join('');
+    panel.style.display='block';
+  }).catch(function(){panel.style.display='none';});
 }
 
 // ═══════════════════ DELETE ═══════════════════
@@ -6189,7 +6275,7 @@ function agregarEstudio(texto){
   var SB_URL = 'https://cnbovfeifekyyyyaktbl.supabase.co';
   var SB_KEY = 'sb_publishable_x0ozgxBWKOlTFCKxHtfWVQ_2M1p-fC4';
   var _sbClient  = null;
-  var _seenIds   = JSON.parse(localStorage.getItem('nv4_seen_seizures')||'[]');
+  var _seenIds   = [];  // Solo en sesión — cada apertura muestra crisis recientes
   var _panelOpen = false;
   var _crisisData= [];
   var _prevNuevas= -1;  // -1 = aún no se hizo el primer poll
@@ -6400,7 +6486,6 @@ function agregarEstudio(texto){
   window._abrirPanelConectado = function(){ window.open('panel-conectado.html','_blank'); };
   window._marcarTodasVistas = function(){
     _seenIds = _crisisData.map(function(s){ return s.id; });
-    localStorage.setItem('nv4_seen_seizures', JSON.stringify(_seenIds));
     _prevNuevas = 0;
     updateBadge(0);
     renderCrisisPanel();
@@ -6482,73 +6567,101 @@ function agregarEstudio(texto){
 (function(){
 'use strict';
 
-var _bibDB=null;
+var _bibDB=null;         // ya no se usa IndexedDB — mantenemos por compatibilidad
 var _bibCurrentId=null;  // id being edited (null = new)
 var _bibFile=null;       // {tipo, nombre, tamano, mimeType, dataUrl} or {existing:true,...}
 var _bibUrlType='link';
 var _bibViewItem=null;   // item shown in viewer
+var _bibSBClient=null;
+var _BIB_SB_URL='https://cnbovfeifekyyyyaktbl.supabase.co';
+var _BIB_SB_KEY='sb_publishable_x0ozgxBWKOlTFCKxHtfWVQ_2M1p-fC4';
 
 // ── helpers ─────────────────────────────────────────────────
 function eH(s){return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 
-// ── IndexedDB ───────────────────────────────────────────────
-function bibInit(){
+// ── Supabase backend para Biblioteca ────────────────────────
+function _bibLoadSupa(){
   return new Promise(function(res,rej){
-    if(_bibDB){res(_bibDB);return;}
-    var r=indexedDB.open('neurovet_bib_db',1);
-    r.onupgradeneeded=function(e){
-      var db=e.target.result;
-      if(!db.objectStoreNames.contains('bibItems')){
-        var st=db.createObjectStore('bibItems',{keyPath:'id',autoIncrement:true});
-        st.createIndex('titulo','titulo',{unique:false});
-        st.createIndex('categoria','categoria',{unique:false});
-        st.createIndex('tipo','tipo',{unique:false});
-        st.createIndex('fecha','fecha',{unique:false});
-      }
-    };
-    r.onsuccess=function(e){_bibDB=e.target.result;res(_bibDB);};
-    r.onerror=function(e){console.error('BibDB error',e);rej(e);};
+    if(window.supabase){res();return;}
+    var s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+    s.onload=res; s.onerror=rej; document.head.appendChild(s);
   });
 }
+async function _bibSB(){
+  if(_bibSBClient) return _bibSBClient;
+  await _bibLoadSupa();
+  _bibSBClient=window.supabase.createClient(_BIB_SB_URL,_BIB_SB_KEY);
+  return _bibSBClient;
+}
+function _sbToItem(r){
+  return {id:r.id,titulo:r.titulo,tipo:r.tipo,categoria:r.categoria,
+    descripcion:r.descripcion,url:r.url||r.url_externa,urlExterna:r.url_externa||r.url,
+    dataUrl:r.data_url,nombreArchivo:r.nombre_archivo,mimeType:r.mime_type,
+    tamano:r.tamano||0,pacienteRef:r.paciente_ref,pacienteId:r.paciente_id,
+    pacienteEmail:r.paciente_email,tags:r.tags,fecha:r.fecha_ms||Date.now()};
+}
+function _itemToRow(item){
+  var row={user_label:'sergio',titulo:item.titulo,tipo:item.tipo||'link',
+    categoria:item.categoria||'General',descripcion:item.descripcion||null,
+    url:item.url||item.urlExterna||null,url_externa:item.urlExterna||item.url||null,
+    data_url:item.dataUrl||null,nombre_archivo:item.nombreArchivo||null,
+    mime_type:item.mimeType||null,tamano:item.tamano||0,
+    paciente_ref:item.pacienteRef||null,paciente_id:item.pacienteId||null,
+    paciente_email:item.pacienteEmail||null,tags:item.tags||null,
+    fecha_ms:item.fecha||Date.now()};
+  if(item.id) row.id=item.id;
+  return row;
+}
+
+// bibInit() — retrocompatibilidad: ahora inicializa Supabase
+function bibInit(){ return _bibSB(); }
 
 function bibGetAll(){
-  return new Promise(function(res){
-    if(!_bibDB){res([]);return;}
-    var tx=_bibDB.transaction('bibItems','readonly');
-    var req=tx.objectStore('bibItems').getAll();
-    req.onsuccess=function(){res(req.result||[]);};
-    req.onerror=function(){res([]);};
-  });
+  return _bibSB().then(function(sb){
+    return sb.from('biblioteca_items').select('*').eq('user_label','sergio').order('fecha_ms',{ascending:false});
+  }).then(function(res){
+    if(res.error){ console.error('bibGetAll:',res.error); return []; }
+    return (res.data||[]).map(_sbToItem);
+  }).catch(function(e){ console.error('bibGetAll catch:',e); return []; });
 }
 
 function bibSave(item){
-  return new Promise(function(res,rej){
-    if(!_bibDB){rej('DB not ready');return;}
-    var tx=_bibDB.transaction('bibItems','readwrite');
-    var req=item.id?tx.objectStore('bibItems').put(item):tx.objectStore('bibItems').add(item);
-    req.onsuccess=function(){res(req.result);};
-    req.onerror=function(){rej(req.error);};
+  return _bibSB().then(function(sb){
+    return sb.from('biblioteca_items').upsert(_itemToRow(item),{onConflict:'id'}).select('id').single();
+  }).then(function(res){
+    if(res.error) throw res.error;
+    return res.data?res.data.id:null;
   });
 }
 
 function bibDel(id){
-  return new Promise(function(res,rej){
-    if(!_bibDB){rej('DB not ready');return;}
-    var tx=_bibDB.transaction('bibItems','readwrite');
-    var req=tx.objectStore('bibItems').delete(id);
-    req.onsuccess=function(){res();};
-    req.onerror=function(){rej(req.error);};
+  return _bibSB().then(function(sb){
+    return sb.from('biblioteca_items').delete().eq('id',id);
+  }).then(function(res){
+    if(res.error) throw res.error;
   });
 }
 
 function bibGetById(id){
-  return new Promise(function(res){
-    if(!_bibDB){res(null);return;}
-    var tx=_bibDB.transaction('bibItems','readonly');
-    var req=tx.objectStore('bibItems').get(id);
-    req.onsuccess=function(){res(req.result||null);};
-    req.onerror=function(){res(null);};
-  });
+  return _bibSB().then(function(sb){
+    return sb.from('biblioteca_items').select('*').eq('id',id).single();
+  }).then(function(res){
+    if(res.error) return null;
+    return res.data?_sbToItem(res.data):null;
+  }).catch(function(){ return null; });
+}
+
+// Buscar recursos vinculados a un paciente por nombre
+function bibGetByPaciente(nombre){
+  if(!nombre) return Promise.resolve([]);
+  return _bibSB().then(function(sb){
+    return sb.from('biblioteca_items').select('*').eq('user_label','sergio')
+      .ilike('paciente_ref','%'+nombre+'%').order('fecha_ms',{ascending:false});
+  }).then(function(res){
+    if(res.error) return [];
+    return (res.data||[]).map(_sbToItem);
+  }).catch(function(){ return []; });
 }
 
 // ── Render grid ─────────────────────────────────────────────
