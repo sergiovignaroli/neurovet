@@ -671,7 +671,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
             <div class="form-group" style="margin-top:11px;"><label>Diagnósticos Presuntivos</label><textarea id="f-dx-pres" rows="3" oninput="if(window.checkSDCSugerido)checkSDCSugerido(this.value)"></textarea></div><div id="sdc-link-banner" style="display:none;background:#f5f3ff;border:1.5px solid #a78bfa;border-radius:9px;padding:11px 14px;margin-top:6px;"><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;"><div><div style="font-weight:700;font-size:.85rem;color:#6b21a8;">&#x1F9E0; Sospecha de SDC detectada</div><div style="font-size:.76rem;color:#7c3aed;margin-top:2px;">Completá la evaluación SDC — quedará adjunta a esta consulta</div></div><button type="button" onclick="if(window.irASDCDesdeConsulta)irASDCDesdeConsulta()" style="background:#7c3aed;color:#fff;border:none;border-radius:7px;padding:6px 14px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit;">&#x1F4CB; Abrir evaluación SDC</button></div><div id="sdc-resumen-ficha" style="display:none;margin-top:10px;padding:8px 10px;background:#ede9fe;border-radius:7px;font-size:.78rem;color:#4c1d95;"></div></div>
             <div class="form-group"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;"><label style="margin:0;">Métodos Complementarios</label><button type="button" onclick="if(window.abrirPanelLab)abrirPanelLab()" style="background:#0f766e;color:#fff;border:none;border-radius:7px;padding:4px 12px;font-size:.74rem;font-weight:700;cursor:pointer;font-family:inherit;">🔬 Panel de laboratorio</button></div><textarea id="f-metodos" rows="3" placeholder="Escribí aquí o usá el botón para seleccionar determinaciones..."></textarea></div>
             <div class="form-group"><label>Diagnóstico Definitivo</label><textarea id="f-dx-def" rows="2"></textarea></div>
-            <div class="form-group"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;flex-wrap:wrap;gap:6px;"><label style="margin:0;">Tratamiento</label><div style="display:flex;gap:6px;"><button type="button" onclick="if(window.abrirReceta)abrirReceta()" style="background:#1e3a5f;color:#fff;border:none;border-radius:7px;padding:4px 11px;font-size:.73rem;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Receta PDF</button><button type="button" onclick="if(window.abrirOrden)abrirOrden()" style="background:#0f766e;color:#fff;border:none;border-radius:7px;padding:4px 11px;font-size:.73rem;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg> Orden de estudios</button></div></div><textarea id="f-trat" rows="5" placeholder="Medicación, dosis, frecuencia, duración..."></textarea></div>
+            <div class="form-group"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;flex-wrap:wrap;gap:6px;"><label style="margin:0;">Tratamiento</label><div style="display:flex;gap:6px;flex-wrap:wrap;"><button type="button" onclick="if(window.abrirReceta)abrirReceta()" style="background:#1e3a5f;color:#fff;border:none;border-radius:7px;padding:4px 11px;font-size:.73rem;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Receta PDF</button><button type="button" onclick="if(window.abrirOrden)abrirOrden()" style="background:#0f766e;color:#fff;border:none;border-radius:7px;padding:4px 11px;font-size:.73rem;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg> Orden de estudios</button><button type="button" onclick="if(window.abrirBibDesdeConsulta)abrirBibDesdeConsulta()" style="background:#7c3aed;color:#fff;border:none;border-radius:7px;padding:4px 11px;font-size:.73rem;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> Biblioteca</button></div></div><textarea id="f-trat" rows="5" placeholder="Medicación, dosis, frecuencia, duración..."></textarea></div>
             <div class="form-row"><div class="form-group"><label>Pronóstico</label><select id="f-pron"><option value="">Sin determinar</option><option>Favorable</option><option>Reservado</option><option>Grave</option><option>Desfavorable</option></select></div><div class="form-group"><label>Próximo control</label><input id="f-prox" type="date"></div></div>
             <div class="form-group"><label>Observaciones finales</label><textarea id="f-obs-fin" rows="3"></textarea></div>
           </div>
@@ -1369,6 +1369,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
           <option value="old">Más antiguo</option>
         </select>
       </div>
+      <div style="padding:0 0 10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <span style="font-size:.76rem;color:var(--text-soft);font-weight:600;">🏷️ Buscar por tema:</span>
+        <input type="search" id="bib-filter-tag" placeholder="Escribí un tema/etiqueta..." oninput="renderBiblioteca()" style="flex:1;min-width:160px;padding:5px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.8rem;font-family:inherit;background:var(--surface);color:var(--text);">
+        <button id="bib-tag-clear" type="button" onclick="document.getElementById('bib-filter-tag').value='';renderBiblioteca();" style="display:none;padding:4px 10px;border:1.5px solid #e5e7eb;border-radius:8px;background:#f9fafb;font-size:.75rem;cursor:pointer;color:#6b7280;">✕ limpiar</button>
+      </div>
       <div id="bib-grid" class="bib-grid"></div>
     </div>
 
@@ -1380,6 +1385,35 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <div class="modal-overlay hidden" id="modal-delete"><div class="modal"><div class="modal-head"><h3>Eliminar ficha</h3><button class="close-btn" onclick="closeModal('modal-delete')">×</button></div><div class="modal-body"><p>¿Seguro de eliminar esta ficha? No se puede deshacer.</p></div><div class="modal-foot"><button class="btn btn-outline" onclick="closeModal('modal-delete')">Cancelar</button><button class="btn btn-danger" id="btn-del">Eliminar</button></div></div></div>
 
 <div class="modal-overlay hidden" id="modal-viewer"><div class="modal modal-lg"><div class="modal-head"><div><h3 id="vw-title">Ficha</h3><div id="vw-sub" style="font-size:.75rem;color:var(--text-soft);margin-top:2px;"></div></div><button class="close-btn" onclick="closeModal('modal-viewer')">×</button></div><div class="modal-body" id="vw-body"></div><div class="modal-foot"><button class="btn btn-outline" onclick="closeModal('modal-viewer')">Cerrar</button><button class="btn btn-primary" id="vw-edit">✏️ Editar</button><button class="btn btn-accent" id="vw-pdf">PDF</button></div></div></div>
+
+<!-- MODAL BIBLIOTECA DESDE CONSULTA -->
+<div class="modal-overlay hidden" id="modal-bib-consulta">
+  <div class="modal modal-lg" style="max-width:680px;">
+    <div class="modal-head">
+      <div>
+        <h3 style="display:flex;align-items:center;gap:8px;">📚 <span id="bib-cons-title">Biblioteca del paciente</span></h3>
+        <div id="bib-cons-meta" style="font-size:.74rem;color:var(--text-soft);margin-top:2px;"></div>
+      </div>
+      <button class="close-btn" onclick="closeModal('modal-bib-consulta')">×</button>
+    </div>
+    <div class="modal-body" style="padding-bottom:0;">
+      <!-- buscador rápido dentro del modal -->
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+        <input type="search" id="bib-cons-search" placeholder="🔍 Buscar recurso..." oninput="renderBibConsulta()" style="flex:1;padding:7px 11px;border:1.5px solid var(--border);border-radius:8px;font-size:.83rem;font-family:inherit;background:var(--surface);color:var(--text);">
+        <button type="button" onclick="abrirModalBibDesdeConsulta()" style="background:#7c3aed;color:#fff;border:none;border-radius:8px;padding:7px 13px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">+ Agregar recurso</button>
+      </div>
+      <!-- tabs: todos / del paciente -->
+      <div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:12px;">
+        <button id="bib-cons-tab-pac" type="button" onclick="setBibConsTab('pac')" style="padding:6px 16px;font-size:.8rem;font-weight:700;border:none;background:none;cursor:pointer;border-bottom:2.5px solid #7c3aed;color:#7c3aed;font-family:inherit;margin-bottom:-2px;">🐾 Del paciente</button>
+        <button id="bib-cons-tab-all" type="button" onclick="setBibConsTab('all')" style="padding:6px 16px;font-size:.8rem;font-weight:600;border:none;background:none;cursor:pointer;border-bottom:2.5px solid transparent;color:var(--text-soft);font-family:inherit;margin-bottom:-2px;">📂 Toda la biblioteca</button>
+      </div>
+      <div id="bib-cons-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;max-height:55vh;overflow-y:auto;padding-bottom:12px;"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('modal-bib-consulta')">Cerrar</button>
+    </div>
+  </div>
+</div>
 
 <!-- MODAL BIBLIOTECA — AGREGAR / EDITAR -->
 <div class="modal-overlay hidden" id="modal-bib-add">
@@ -1421,6 +1455,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <div class="form-group">
         <label>Descripción (opcional)</label>
         <textarea id="bib-desc" rows="2" placeholder="Breve descripción del contenido, uso clínico, fuente..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Temas / Etiquetas <span style="font-size:.73rem;color:var(--text-soft);font-weight:400;">(separadas por coma)</span></label>
+        <input type="text" id="bib-tags" placeholder="Ej: epilepsia, convulsiones, fenotipo canino, protocolo">
       </div>
       <div class="form-group" style="position:relative;">
         <label>Vincular a paciente (opcional)</label>
@@ -1658,6 +1696,10 @@ function newConsulta(key){
   document.getElementById('topbar-title').textContent='Nueva consulta — '+prev.paciente;
   // Activar Historia si el paciente tiene fichas anteriores
   setTimeout(function(){if(typeof window._histCheck==='function')window._histCheck(prev.paciente,prev.owner);},300);
+  // Mostrar medicación previa del paciente en el banner
+  _mostrarMedBanner(prev);
+  // Mostrar recursos de biblioteca vinculados al paciente
+  _mostrarBibFicha(prev.paciente||prev.owner||'');
 }
 
 // ═══════════════════ COLLECT/SAVE ═══════════════════
@@ -5586,9 +5628,12 @@ function guardarSeleccionLab(){
           <div style="font-size:.9rem;font-weight:700;color:#1e3a5f;">Vista previa</div>
           <div style="font-size:.74rem;color:#6b7280;">Los campos subrayados son editables</div>
         </div>
-        <div style="font-size:.82rem;display:flex;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
-          <div><span style="color:#6b7280;">Fecha: </span><strong id="rv-fecha"></strong></div>
+        <div style="font-size:.82rem;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
           <div><span style="color:#6b7280;">Propietario: </span><span id="rv-owner"></span></div>
+          <div style="text-align:center;padding:3px 14px;background:#f0f4ff;border:1px solid #c7d2fe;border-radius:6px;">
+            <div style="font-size:.62rem;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;">Fecha</div>
+            <strong id="rv-fecha" style="font-size:.84rem;color:#1e3a5f;"></strong>
+          </div>
         </div>
         <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:6px;padding:8px 12px;margin-bottom:14px;font-size:.82rem;display:flex;gap:16px;flex-wrap:wrap;">
           <div><span style="color:#6b7280;">Paciente: </span><strong id="rv-paciente"></strong></div>
@@ -5631,9 +5676,12 @@ function guardarSeleccionLab(){
           <div><span style="color:#6b7280;">Paciente: </span><strong id="ro-paciente"></strong> — <span id="ro-especie"></span> <span id="ro-raza"></span></div>
           <div><span style="color:#6b7280;">Peso: </span><span id="ro-peso"></span></div>
         </div>
-        <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:6px;padding:8px 12px;margin-bottom:14px;font-size:.82rem;display:flex;gap:16px;">
+        <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:6px;padding:8px 12px;margin-bottom:14px;font-size:.82rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
           <div><span style="color:#6b7280;">Edad: </span><span id="ro-edad"></span></div>
-          <div><span style="color:#6b7280;">Fecha: </span><strong id="ro-fecha"></strong></div>
+          <div style="text-align:center;padding:3px 14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;">
+            <div style="font-size:.62rem;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;">Fecha</div>
+            <strong id="ro-fecha" style="font-size:.84rem;color:#0f766e;"></strong>
+          </div>
         </div>
         <div style="font-size:.74rem;font-weight:700;color:#0f766e;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Diagnóstico / Sospecha</div>
         <div id="ro-dx" style="font-size:.84rem;border-left:3px solid #0f766e;padding-left:10px;color:#374151;font-style:italic;margin-bottom:14px;"></div>
@@ -6772,13 +6820,23 @@ window.renderBiblioteca=async function(){
   var q=((document.getElementById('bib-search')||{}).value||'').trim().toLowerCase();
   var ft=((document.getElementById('bib-filter-tipo')||{}).value||'');
   var fc=((document.getElementById('bib-filter-cat')||{}).value||'');
+  var ftag=((document.getElementById('bib-filter-tag')||{}).value||'').trim().toLowerCase();
   var srt=((document.getElementById('bib-sort')||{}).value||'az');
 
+  // mostrar/ocultar botón limpiar tag
+  var tagClear=document.getElementById('bib-tag-clear');
+  if(tagClear)tagClear.style.display=ftag?'inline-block':'none';
+
   if(q)items=items.filter(function(it){
-    return (it.titulo||'').toLowerCase().includes(q)||(it.descripcion||'').toLowerCase().includes(q)||(it.pacienteRef||'').toLowerCase().includes(q)||(it.categoria||'').toLowerCase().includes(q);
+    return (it.titulo||'').toLowerCase().includes(q)||(it.descripcion||'').toLowerCase().includes(q)||(it.pacienteRef||'').toLowerCase().includes(q)||(it.categoria||'').toLowerCase().includes(q)
+      ||(Array.isArray(it.tags)?it.tags.join(' ').toLowerCase().includes(q):false);
   });
   if(ft)items=items.filter(function(it){return it.tipo===ft;});
   if(fc)items=items.filter(function(it){return it.categoria===fc;});
+  if(ftag)items=items.filter(function(it){
+    if(!it.tags||!it.tags.length)return false;
+    return it.tags.some(function(t){return t.toLowerCase().includes(ftag);});
+  });
 
   items.sort(function(a,b){
     if(srt==='az')return (a.titulo||'').localeCompare(b.titulo||'','es',{sensitivity:'base'});
@@ -6810,6 +6868,13 @@ window.renderBiblioteca=async function(){
     }
     thumb+='</div>';
     var pac=it.pacienteRef?'<div class="bib-pac-link">🐾 '+eH(it.pacienteRef)+'</div>':'';
+    // Tags pills
+    var tagsPills='';
+    if(it.tags&&it.tags.length){
+      tagsPills='<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:5px;">'
+        +it.tags.map(function(t){return '<span style="display:inline-block;padding:1px 7px;background:#ede9fe;color:#6d28d9;border-radius:20px;font-size:.67rem;font-weight:600;">'+eH(t)+'</span>';}).join('')
+        +'</div>';
+    }
     // *** FIX UUID: id siempre entre comillas simples ***
     var qid="'"+it.id+"'";
     return '<div class="bib-card" onclick="verItemBib('+qid+')" title="'+eH(it.titulo||'')+'">'
@@ -6820,6 +6885,7 @@ window.renderBiblioteca=async function(){
       +'<div class="bib-badges">'
       +'<span class="bib-badge '+eH(tCls[it.tipo]||'bib-badge-other')+'">'+eH(it.tipo||'otro')+'</span>'
       +'</div>'
+      +tagsPills
       +pac
       +'<div class="bib-card-actions" onclick="event.stopPropagation()">'
       +'<button onclick="event.stopPropagation();verItemBib('+qid+')">👁 Ver</button>'
@@ -6868,7 +6934,7 @@ window.abrirModalBib=async function(id){
   _bibUrlType='link';
   _bibCurrentId=id||null;
 
-  ['bib-titulo','bib-url','bib-desc','bib-pac-search','bib-pac-id','bib-pac-email'].forEach(function(f){
+  ['bib-titulo','bib-url','bib-desc','bib-tags','bib-pac-search','bib-pac-id','bib-pac-email'].forEach(function(f){
     var el=document.getElementById(f);if(el)el.value='';
   });
   var el=function(id){return document.getElementById(id);};
@@ -6889,6 +6955,7 @@ window.abrirModalBib=async function(id){
       sv('bib-titulo',item.titulo);
       sv('bib-url',item.url||item.urlExterna||'');
       sv('bib-desc',item.descripcion||'');
+      sv('bib-tags',Array.isArray(item.tags)?item.tags.join(', '):(item.tags||''));
       if(document.getElementById('bib-categoria'))document.getElementById('bib-categoria').value=item.categoria||'General';
       if(item.pacienteRef){
         sv('bib-pac-search',item.pacienteRef);
@@ -7038,6 +7105,8 @@ window.guardarItemBib=async function(){
   var pacRef=g('bib-pac-search').trim();
   var pacId=g('bib-pac-id');
   var pacEmail=g('bib-pac-email');
+  var tagsRaw=g('bib-tags').trim();
+  var tags=tagsRaw?tagsRaw.split(',').map(function(t){return t.trim();}).filter(Boolean):null;
 
   var tipo='link';
   var dataUrl=null;
@@ -7070,6 +7139,7 @@ window.guardarItemBib=async function(){
     url:url,urlExterna:url,dataUrl:dataUrl,
     nombreArchivo:nombre,mimeType:mimeType,tamano:tamano,
     pacienteRef:pacRef,pacienteId:pacId,pacienteEmail:pacEmail,
+    tags:tags,
     fecha:Date.now()
   };
 
@@ -7088,11 +7158,12 @@ window.guardarItemBib=async function(){
     }
   }
 
+  var wasEdit=!!_bibCurrentId;
   try{
     await bibSave(item);
     if(typeof closeModal==='function')closeModal('modal-bib-add');
     _bibFile=null;_bibCurrentId=null;
-    if(typeof showToast==='function')showToast((_bibCurrentId?'Actualizado':'✅ Guardado')+' en la biblioteca','success');
+    if(typeof showToast==='function')showToast((wasEdit?'✅ Actualizado':'✅ Guardado')+' en la biblioteca','success');
     renderBiblioteca();
   }catch(e){
     if(typeof showToast==='function')showToast('Error al guardar: '+e,'error');
@@ -7147,9 +7218,15 @@ window.verItemBib=async function(id){
   if(g('bib-view-desc'))g('bib-view-desc').textContent=item.descripcion||'';
 
   if(g('bib-view-pac')){
-    g('bib-view-pac').innerHTML=item.pacienteRef
+    var tagHtml='';
+    if(item.tags&&item.tags.length){
+      tagHtml='<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px;">'
+        +item.tags.map(function(t){return '<span style="padding:2px 8px;background:#ede9fe;color:#6d28d9;border-radius:20px;font-size:.73rem;font-weight:600;">🏷️ '+eH(t)+'</span>';}).join('')
+        +'</div>';
+    }
+    g('bib-view-pac').innerHTML=(item.pacienteRef
       ?'<div class="bib-pac-link" style="font-size:.82rem;">🐾 Vinculado a: <strong>'+eH(item.pacienteRef)+'</strong>'+(item.pacienteEmail?' <span style="color:var(--text-soft);font-size:.76rem;">('+eH(item.pacienteEmail)+')</span>':'')+'</div>'
-      :'';
+      :'')+tagHtml;
   }
 
   var lb=g('bib-view-link-btn');
@@ -7192,8 +7269,6 @@ window.eliminarItemBib=async function(id){
 };
 
 // ── Conexión desde fichas clínicas ──────────────────────────
-// Para mostrar recursos de biblioteca relacionados dentro de una ficha,
-// llamar: getBibItemsPorPaciente(email, nombre) → Promise<items[]>
 window.getBibItemsPorPaciente=async function(email,nombre){
   try{
     await bibInit();
@@ -7204,6 +7279,140 @@ window.getBibItemsPorPaciente=async function(email,nombre){
       return false;
     });
   }catch(e){return[];}
+};
+
+// ── Biblioteca desde consulta ────────────────────────────────
+var _bibConsTab='pac';          // 'pac' | 'all'
+var _bibConsItems=[];           // cache de todos los items
+var _bibConsPaciente='';        // nombre del paciente actual
+var _bibConsPacEmail='';        // email del paciente actual
+
+function setBibConsTab(tab){
+  _bibConsTab=tab;
+  var tabPac=document.getElementById('bib-cons-tab-pac');
+  var tabAll=document.getElementById('bib-cons-tab-all');
+  if(tabPac){
+    tabPac.style.borderBottomColor=tab==='pac'?'#7c3aed':'transparent';
+    tabPac.style.color=tab==='pac'?'#7c3aed':'var(--text-soft)';
+    tabPac.style.fontWeight=tab==='pac'?'700':'600';
+  }
+  if(tabAll){
+    tabAll.style.borderBottomColor=tab==='all'?'#7c3aed':'transparent';
+    tabAll.style.color=tab==='all'?'#7c3aed':'var(--text-soft)';
+    tabAll.style.fontWeight=tab==='all'?'700':'600';
+  }
+  renderBibConsulta();
+}
+window.setBibConsTab=setBibConsTab;
+
+function renderBibConsulta(){
+  var grid=document.getElementById('bib-cons-grid');
+  if(!grid)return;
+  var q=((document.getElementById('bib-cons-search')||{}).value||'').trim().toLowerCase();
+  var tIcon={pdf:'📄',image:'🖼️',video:'🎬',link:'🔗',other:'📎'};
+  var tCls={pdf:'bib-badge-pdf',image:'bib-badge-image',video:'bib-badge-video',link:'bib-badge-link',other:'bib-badge-other'};
+
+  var items=_bibConsItems.slice();
+
+  // filtrar por tab
+  if(_bibConsTab==='pac'&&_bibConsPaciente){
+    var pl=_bibConsPaciente.toLowerCase();
+    var el=_bibConsPacEmail.toLowerCase();
+    items=items.filter(function(it){
+      var pr=(it.pacienteRef||'').toLowerCase();
+      var pe=(it.pacienteEmail||'').toLowerCase();
+      return pr.includes(pl)||(el&&pe===el);
+    });
+  }
+
+  // filtrar por búsqueda
+  if(q){
+    items=items.filter(function(it){
+      return (it.titulo||'').toLowerCase().includes(q)
+        ||(it.descripcion||'').toLowerCase().includes(q)
+        ||(it.categoria||'').toLowerCase().includes(q)
+        ||(Array.isArray(it.tags)?it.tags.join(' ').toLowerCase().includes(q):false);
+    });
+  }
+
+  if(!items.length){
+    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--text-soft);">'
+      +(_bibConsTab==='pac'?'<div style="font-size:2rem;margin-bottom:8px;">📭</div><div style="font-size:.84rem;">No hay recursos vinculados a <strong>'+eH(_bibConsPaciente||'este paciente')+'</strong>.</div><div style="font-size:.78rem;margin-top:6px;">Usá <strong>"+ Agregar recurso"</strong> para vincular uno.</div>'
+      :'<div style="font-size:2rem;margin-bottom:8px;">📚</div><div style="font-size:.84rem;">La biblioteca está vacía o no coincide con la búsqueda.</div>')
+      +'</div>';
+    return;
+  }
+
+  grid.innerHTML=items.map(function(it){
+    var icon=tIcon[it.tipo]||'📎';
+    var qid="'"+it.id+"'";
+    var tagsPills=it.tags&&it.tags.length
+      ?'<div style="display:flex;flex-wrap:wrap;gap:2px;margin-top:4px;">'+it.tags.map(function(t){return '<span style="padding:1px 5px;background:#ede9fe;color:#6d28d9;border-radius:20px;font-size:.63rem;font-weight:600;">'+eH(t)+'</span>';}).join('')+'</div>'
+      :'';
+    var pacBadge=it.pacienteRef?'<div style="font-size:.67rem;color:var(--teal-dark);margin-top:2px;">🐾 '+eH(it.pacienteRef)+'</div>':'';
+    return '<div onclick="verItemBib('+qid+')" style="background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:10px;cursor:pointer;transition:.15s;" onmouseenter="this.style.borderColor=\'#7c3aed\';this.style.boxShadow=\'0 0 0 3px #ede9fe\'" onmouseleave="this.style.borderColor=\'var(--border)\';this.style.boxShadow=\'\'">'
+      +'<div style="font-size:1.5rem;text-align:center;margin-bottom:5px;">'+icon+'</div>'
+      +'<div style="font-size:.78rem;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:3px;">'+eH(it.titulo||'Sin título')+'</div>'
+      +(it.descripcion?'<div style="font-size:.69rem;color:var(--text-soft);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:3px;">'+eH(it.descripcion)+'</div>':'')
+      +'<span class="bib-badge '+eH(tCls[it.tipo]||'bib-badge-other')+'" style="font-size:.62rem;">'+eH(it.tipo||'otro')+'</span>'
+      +tagsPills+pacBadge
+      +'</div>';
+  }).join('');
+}
+window.renderBibConsulta=renderBibConsulta;
+
+window.abrirBibDesdeConsulta=async function(){
+  // Obtener paciente activo desde el formulario
+  var pacEl=document.getElementById('f-paciente');
+  var ownerEl=document.getElementById('f-email')||document.getElementById('f-owner');
+  _bibConsPaciente=(pacEl?pacEl.value.trim():'');
+  _bibConsPacEmail=(ownerEl?ownerEl.value.trim():'');
+
+  var title=document.getElementById('bib-cons-title');
+  var meta=document.getElementById('bib-cons-meta');
+  if(title)title.textContent=_bibConsPaciente?'Biblioteca — '+_bibConsPaciente:'Biblioteca de recursos';
+  if(meta)meta.textContent=_bibConsPaciente?'Mostrando recursos del paciente y generales':'Todos los recursos de tu biblioteca';
+
+  var m=document.getElementById('modal-bib-consulta');
+  if(m)m.classList.remove('hidden');
+
+  // reset tab y búsqueda
+  _bibConsTab='pac';
+  setBibConsTab('pac');
+  var srch=document.getElementById('bib-cons-search');
+  if(srch)srch.value='';
+
+  var grid=document.getElementById('bib-cons-grid');
+  if(grid)grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-soft);font-size:.85rem;">⏳ Cargando...</div>';
+
+  try{
+    await bibInit();
+    _bibConsItems=await bibGetAll();
+    renderBibConsulta();
+  }catch(e){
+    if(grid)grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:30px;color:#dc2626;font-size:.83rem;">Error al cargar la biblioteca.</div>';
+  }
+};
+
+// Abrir modal de agregar recurso desde la consulta, pre-llenando el paciente actual
+window.abrirModalBibDesdeConsulta=function(){
+  closeModal('modal-bib-consulta');
+  setTimeout(function(){
+    abrirModalBib(null);
+    // pre-llenar datos del paciente
+    var pacEl=document.getElementById('f-paciente');
+    var emailEl=document.getElementById('f-email')||document.getElementById('f-owner');
+    var pac=(pacEl?pacEl.value.trim():'');
+    var em=(emailEl?emailEl.value.trim():'');
+    if(pac){
+      var si=document.getElementById('bib-pac-search');
+      if(si)si.value=pac;
+      var sel=document.getElementById('bib-pac-selected');
+      if(sel){sel.style.display='block';sel.textContent='🐾 '+pac+(em?' ('+em+')':'');}
+      var ei=document.getElementById('bib-pac-email');
+      if(ei)ei.value=em;
+    }
+  },120);
 };
 
 })();
