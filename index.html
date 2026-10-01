@@ -251,6 +251,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .bib-viewer-content video{max-width:100%;max-height:62vh;border-radius:8px;}
 .bib-pac-dropdown-item{padding:7px 11px;cursor:pointer;font-size:.82rem;border-bottom:1px solid var(--border-light);}
 .bib-pac-dropdown-item:hover{background:var(--surface2);}
+/* ── Voice & AI field toolbar ─────────────────────────────────────────── */
+.nv-field-toolbar{display:flex;gap:5px;justify-content:flex-end;margin-bottom:4px;min-height:22px;}
+.nv-voice-btn,.nv-ai-btn{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text-soft);font-size:.7rem;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s;line-height:1.5;white-space:nowrap;}
+.nv-voice-btn:hover{border-color:var(--teal);color:var(--teal-dark);background:var(--teal-light);}
+.nv-voice-btn.nv-recording{background:#fee2e2;border-color:#dc2626;color:#dc2626;animation:nv-mic-pulse .9s ease-in-out infinite;}
+.nv-voice-btn.nv-recording svg{color:#dc2626;}
+.nv-ai-btn:hover{border-color:#7c3aed;color:#7c3aed;background:#f5f3ff;}
+.nv-ai-btn:disabled{opacity:.5;cursor:not-allowed;}
+@keyframes nv-mic-pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.65;transform:scale(.95);}}
+@media(prefers-color-scheme:dark){.nv-voice-btn,.nv-ai-btn{background:var(--surface);}}
 </style>
 </head>
 <body>
@@ -2741,6 +2751,7 @@ var GCAL_SCOPE = 'https://www.googleapis.com/auth/calendar';
 var GCAL_DISCOVERY = 'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest';
 var _gcalTokenClient = null;
 var _gcalAccessToken = null;
+var _gcalRenewalTimer = null;
 
 function gcalIsConnected(){
   return !!(_gcalAccessToken);
@@ -2760,6 +2771,11 @@ function gcalConnect(){
   var clientId = el.value.trim();
   if(!clientId){ showToast('Ingresa el Client ID de Google','error'); return; }
   localStorage.setItem('gcal_client_id', clientId);
+  // En Electron usar flujo nativo con refresh_token permanente
+  if(window.electronAPI && window.electronAPI.gcal){
+    gcalConnectElectron(clientId);
+    return;
+  }
   showToast('Cargando Google API...','info');
   gcalLoadAPI(clientId);
 }
@@ -2797,6 +2813,11 @@ async function gcalInitClient(clientId){
         if(resp && resp.access_token){
           _gcalAccessToken = resp.access_token;
           gapi.client.setToken(resp);
+          // Persistir token en localStorage para auto-reconexion
+          var expiresIn = resp.expires_in || 3600;
+          localStorage.setItem('gcal_access_token', resp.access_token);
+          localStorage.setItem('gcal_token_exp', String(Date.now()+(expiresIn*1000)));
+          gcalScheduleRenewal(expiresIn);
           // Obtener email del usuario
           fetch('https://www.googleapis.com/oauth2/v2/userinfo',{
             headers:{'Authorization':'Bearer '+resp.access_token}
@@ -2814,11 +2835,24 @@ async function gcalInitClient(clientId){
         }
       }
     });
-    _gcalTokenClient.requestAccessToken({prompt:'consent'});
+    // Primera vez: pedir consent. Si ya esta autorizado: reconexion silenciosa
+    var alreadyAuth = !!localStorage.getItem('gcal_user_email');
+    _gcalTokenClient.requestAccessToken({prompt: alreadyAuth ? '' : 'consent'});
   }catch(e){
     console.error('gcalInitClient:', e);
     showToast('Error al conectar con Google: '+(e.message||e),'error');
   }
+}
+
+// Renovacion automatica del token 5 minutos antes de que expire
+function gcalScheduleRenewal(expiresInSeconds){
+  if(_gcalRenewalTimer) clearTimeout(_gcalRenewalTimer);
+  var renewIn = Math.max((expiresInSeconds - 300), 60) * 1000;
+  _gcalRenewalTimer = setTimeout(function(){
+    if(_gcalTokenClient){
+      _gcalTokenClient.requestAccessToken({prompt:''});
+    }
+  }, renewIn);
 }
 
 function gcalUpdateUI(connected, email){
@@ -2853,10 +2887,24 @@ function gcalDisconnect(){
   if(window.google && _gcalAccessToken){
     try{ google.accounts.oauth2.revoke(_gcalAccessToken, function(){}); }catch(e){}
   }
+  if(_gcalRenewalTimer){ clearTimeout(_gcalRenewalTimer); _gcalRenewalTimer=null; }
+  if(_gcalElectronRenewalTimer){ clearTimeout(_gcalElectronRenewalTimer); _gcalElectronRenewalTimer=null; }
   _gcalAccessToken = null;
+  _gcalTokenClient = null;
   localStorage.removeItem('gcal_user_email');
+  localStorage.removeItem('gcal_access_token');
+  localStorage.removeItem('gcal_token_exp');
+  // En Electron: borrar también el refresh_token del disco
+  if(window.electronAPI && window.electronAPI.gcal){
+    window.electronAPI.gcal.clearStored();
+  }
   gcalUpdateUI(false,'');
   showToast('Google Calendar desconectado','info');
+}
+
+function gcalGetCalendarId(){
+  return localStorage.getItem('gcal_calendar_id') ||
+    '58a597610dd6c6863d73f305d464d6b31303d58f7c045e4a35ddb6ec0b9113ff@group.calendar.google.com';
 }
 
 async function gcalCreateEvent(turno){
@@ -2865,7 +2913,7 @@ async function gcalCreateEvent(turno){
     var hora = turno.hora||'09:00';
     var h2 = String(parseInt(hora.split(':')[0])+1).padStart(2,'0')+':'+hora.split(':')[1];
     var resp = await gapi.client.calendar.events.insert({
-      calendarId:'primary',
+      calendarId:gcalGetCalendarId(),
       resource:{
         summary:'NeuroVet: '+(turno.paciente||'Consulta')+(turno.owner?' - '+turno.owner:''),
         description:(turno.motivo||'Control veterinario')+(turno.notas?'\n'+turno.notas:'')+'\n[NeuroVet:'+turno.id+']',
@@ -2897,7 +2945,7 @@ async function gcalUpdateEvent(turno){
     var hora=turno.hora||'09:00';
     var h2=String(parseInt(hora.split(':')[0])+1).padStart(2,'0')+':'+hora.split(':')[1];
     await gapi.client.calendar.events.patch({
-      calendarId:'primary',eventId:turno.gcalEventId,
+      calendarId:gcalGetCalendarId(),eventId:turno.gcalEventId,
       resource:{
         summary:'NeuroVet: '+(turno.paciente||'Consulta')+(turno.owner?' - '+turno.owner:''),
         description:(turno.motivo||'')+(turno.notas?'\n'+turno.notas:'')+'\n[NeuroVet:'+turno.id+']',
@@ -2911,7 +2959,7 @@ async function gcalUpdateEvent(turno){
 async function gcalDeleteEvent(gcalEventId){
   if(!gcalIsConnected()||!gcalEventId||!window.gapi) return;
   try{
-    await gapi.client.calendar.events.delete({calendarId:'primary',eventId:gcalEventId});
+    await gapi.client.calendar.events.delete({calendarId:gcalGetCalendarId(),eventId:gcalEventId});
   }catch(e){console.error('gcalDeleteEvent:',e);}
 }
 
@@ -2940,7 +2988,7 @@ async function gcalSyncAll(){
     var now=new Date().toISOString();
     var future=new Date(Date.now()+90*24*3600*1000).toISOString();
     var response=await gapi.client.calendar.events.list({
-      calendarId:'primary',timeMin:now,timeMax:future,
+      calendarId:gcalGetCalendarId(),timeMin:now,timeMax:future,
       singleEvents:true,orderBy:'startTime',maxResults:200
     });
     var evs=response.result.items||[];
@@ -2978,17 +3026,213 @@ async function gcalSyncAll(){
   showToast('Google Cal: '+synced+' exportados, '+imported+' importados','success');
 }
 
-function gcalAutoInit(){
-  var email=localStorage.getItem('gcal_user_email');
-  var clientId=localStorage.getItem('gcal_client_id');
-  if(!clientId) return;
-  var descEl=document.getElementById('gcal-status-desc');
-  if(descEl&&email){
-    descEl.textContent='Cuenta: '+email+' — Click en Conectar para reconectar';
-    var btn=document.getElementById('gcal-connect-btn');
-    if(btn) btn.textContent='Reconectar ('+email+')';
+// ═══════════════════════════════════════════════════════════════════════════
+// GOOGLE CALENDAR — Flujo nativo Electron (refresh_token permanente en disco)
+// ═══════════════════════════════════════════════════════════════════════════
+
+var _gcalElectronRenewalTimer = null;
+
+function gcalScheduleElectronRenewal(expiresInSeconds, clientId){
+  if(_gcalElectronRenewalTimer) clearTimeout(_gcalElectronRenewalTimer);
+  var renewIn = Math.max((expiresInSeconds - 300), 60) * 1000;
+  _gcalElectronRenewalTimer = setTimeout(function(){
+    gcalElectronRefresh(clientId, false);
+  }, renewIn);
+}
+
+async function gcalConnectElectron(clientId){
+  showToast('Abriendo autorización de Google en el navegador...', 'info');
+  try {
+    var result = await window.electronAPI.gcal.startAuth(clientId);
+    if(!result.ok){ showToast('Error: ' + result.error, 'error'); return; }
+    _gcalAccessToken = result.access_token;
+    if(window.gapi) gapi.client.setToken({access_token: result.access_token});
+    var email = result.email || '';
+    if(email) localStorage.setItem('gcal_user_email', email);
+    localStorage.setItem('gcal_client_id', clientId);
+    localStorage.setItem('gcal_access_token', result.access_token);
+    localStorage.setItem('gcal_token_exp', String(Date.now()+(( result.expires_in||3600)*1000)));
+    gcalScheduleElectronRenewal(result.expires_in||3600, clientId);
+    gcalUpdateUI(true, email);
+    showToast('Google Calendar conectado: ' + email, 'success');
+    // Cargar GAPI para poder llamar a la API de Calendar
+    gcalLoadGAPIOnly(clientId, function(){
+      gcalSyncAll();
+    });
+  } catch(e){
+    showToast('Error al conectar: ' + (e.message||e), 'error');
   }
 }
+
+async function gcalElectronRefresh(clientId, showMessages){
+  try {
+    var cid = clientId || localStorage.getItem('gcal_client_id');
+    var result = await window.electronAPI.gcal.refreshToken(cid);
+    if(!result.ok){
+      if(showMessages) showToast('Sesión expirada — reconectá Google Calendar', 'error');
+      gcalUpdateUI(false,'');
+      return false;
+    }
+    _gcalAccessToken = result.access_token;
+    if(window.gapi) gapi.client.setToken({access_token: result.access_token});
+    localStorage.setItem('gcal_access_token', result.access_token);
+    localStorage.setItem('gcal_token_exp', String(Date.now()+((result.expires_in||3600)*1000)));
+    gcalScheduleElectronRenewal(result.expires_in||3600, cid);
+    if(showMessages) showToast('Google Calendar renovado automáticamente', 'success');
+    return true;
+  } catch(e){
+    console.error('gcalElectronRefresh:', e);
+    return false;
+  }
+}
+
+// Carga solo GAPI (sin GIS) para poder hacer llamadas a Calendar API
+function gcalLoadGAPIOnly(clientId, cb){
+  var load = function(){
+    if(window.gapi){
+      gapi.load('client', function(){
+        gapi.client.init({discoveryDocs:['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest']}).then(function(){
+          if(_gcalAccessToken) gapi.client.setToken({access_token: _gcalAccessToken});
+          if(cb) cb();
+        }).catch(function(e){ console.error('gcalLoadGAPIOnly:', e); if(cb) cb(); });
+      });
+    } else {
+      var s = document.createElement('script');
+      s.src = 'https://apis.google.com/js/api.js'; s.async = true;
+      s.onload = function(){ gcalLoadGAPIOnly(clientId, cb); };
+      document.head.appendChild(s);
+    }
+  };
+  load();
+}
+
+async function gcalAutoInitElectron(){
+  var clientId = localStorage.getItem('gcal_client_id');
+  var email    = localStorage.getItem('gcal_user_email');
+  if(!clientId) return;
+
+  try {
+    var stored = await window.electronAPI.gcal.getStored();
+    if(!stored.ok || !stored.refresh_token){
+      // No hay refresh_token — mostrar botón de conectar
+      var btn = document.getElementById('gcal-connect-btn');
+      if(btn){ btn.style.display='inline-flex'; btn.textContent='Conectar Google Calendar'; }
+      return;
+    }
+
+    var storedEmail = stored.email || email || '';
+    var tokenStillValid = stored.access_token && stored.saved_at &&
+      (Date.now() < stored.saved_at + ((stored.expires_in||3600)*1000) - 60000);
+
+    if(tokenStillValid){
+      // Token vigente — restaurar directamente
+      _gcalAccessToken = stored.access_token;
+      localStorage.setItem('gcal_access_token', stored.access_token);
+      var remainSec = Math.floor((stored.saved_at + (stored.expires_in||3600)*1000 - Date.now()) / 1000);
+      gcalLoadGAPIOnly(stored.clientId||clientId, function(){
+        gcalUpdateUI(true, storedEmail);
+        gcalSyncAll();
+      });
+      gcalScheduleElectronRenewal(remainSec, stored.clientId||clientId);
+    } else {
+      // Token vencido — renovar con refresh_token (silencioso, sin popup)
+      gcalLoadGAPIOnly(stored.clientId||clientId, async function(){
+        var ok = await gcalElectronRefresh(stored.clientId||clientId, false);
+        if(ok){
+          gcalUpdateUI(true, storedEmail);
+          gcalSyncAll();
+        } else {
+          // refresh_token revocado — pedir nueva autorización (raro)
+          var btn = document.getElementById('gcal-connect-btn');
+          if(btn){ btn.style.display='inline-flex'; btn.textContent='Reconectar Google Calendar'; }
+        }
+      });
+    }
+  } catch(e){
+    console.error('gcalAutoInitElectron:', e);
+  }
+}
+
+// ─── Fin flujo Electron ──────────────────────────────────────────────────────
+
+function gcalAutoInit(){
+  // En Electron: usar flujo nativo con refresh_token permanente
+  if(window.electronAPI && window.electronAPI.gcal){
+    gcalAutoInitElectron();
+    return;
+  }
+
+  var email    = localStorage.getItem('gcal_user_email');
+  var clientId = localStorage.getItem('gcal_client_id');
+  if(!clientId) return;
+
+  var cachedToken = localStorage.getItem('gcal_access_token');
+  var tokenExp    = parseInt(localStorage.getItem('gcal_token_exp')||'0', 10);
+  var tokenValid  = !!(cachedToken && tokenExp && Date.now() < tokenExp - 60000);
+
+  // Cargar APIs de Google y reconectar silenciosamente
+  var doLoad = function(){
+    if(window.gapi){
+      gapi.load('client', function(){ gcalInitClientSilent(clientId, cachedToken, tokenValid, tokenExp, email); });
+    } else {
+      var s = document.createElement('script');
+      s.src = 'https://apis.google.com/js/api.js'; s.async = true;
+      s.onload = function(){ gapi.load('client', function(){ gcalInitClientSilent(clientId, cachedToken, tokenValid, tokenExp, email); }); };
+      document.head.appendChild(s);
+    }
+  };
+  if(window.google && window.google.accounts){ doLoad(); }
+  else {
+    var s2 = document.createElement('script');
+    s2.src = 'https://accounts.google.com/gsi/client'; s2.async = true;
+    s2.onload = doLoad;
+    document.head.appendChild(s2);
+  }
+}
+
+async function gcalInitClientSilent(clientId, cachedToken, tokenValid, tokenExp, email){
+  try{
+    await gapi.client.init({ discoveryDocs: [GCAL_DISCOVERY] });
+    _gcalTokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: clientId,
+      scope: GCAL_SCOPE,
+      callback: function(resp){
+        if(resp && resp.access_token){
+          _gcalAccessToken = resp.access_token;
+          gapi.client.setToken(resp);
+          var expiresIn = resp.expires_in || 3600;
+          localStorage.setItem('gcal_access_token', resp.access_token);
+          localStorage.setItem('gcal_token_exp', String(Date.now()+(expiresIn*1000)));
+          gcalScheduleRenewal(expiresIn);
+          gcalUpdateUI(true, email||localStorage.getItem('gcal_user_email')||'');
+          gcalSyncAll();
+        } else {
+          // Renovacion silenciosa fallo (sesion Google expirada) — mostrar boton
+          var descEl = document.getElementById('gcal-status-desc');
+          if(descEl) descEl.textContent=(email||'')+(email?' — ':'')+'Sesión expirada, hacé clic en Reconectar';
+          var btn = document.getElementById('gcal-connect-btn');
+          if(btn){ btn.style.display='inline-flex'; btn.textContent='Reconectar'+(email?' ('+email+')':''); }
+        }
+      }
+    });
+    if(tokenValid){
+      // Token vigente — restaurar directamente sin pasar por OAuth
+      _gcalAccessToken = cachedToken;
+      gapi.client.setToken({access_token: cachedToken});
+      var remainSec = Math.floor((tokenExp - Date.now()) / 1000);
+      gcalScheduleRenewal(remainSec);
+      gcalUpdateUI(true, email||'');
+      gcalSyncAll();
+    } else {
+      // Token vencido o ausente — intentar renovacion silenciosa
+      // (no muestra popup si la sesion de Google sigue activa en el navegador)
+      _gcalTokenClient.requestAccessToken({prompt:''});
+    }
+  }catch(e){
+    console.error('gcalInitClientSilent:', e);
+  }
+}
+
 window.addEventListener('DOMContentLoaded',function(){ gcalAutoInit(); });
 
 function syncGoogleCalendar(){
@@ -7414,6 +7658,267 @@ window.abrirModalBibDesdeConsulta=function(){
     }
   },120);
 };
+
+})();
+</script>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     VOICE DICTATION + AI FIELD IMPROVEMENT  — NeuroVet v4
+     Completamente independiente del código anterior.
+     No modifica ninguna función existente.
+     ══════════════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+  'use strict';
+
+  /* IDs de campos que NO reciben botones (config, outputs IA, chats) */
+  var SKIP = {'fb-config-input':1,'ai-proto-contenido':1,'ai-proto-desc':1,
+              'ai-input':1,'gpt-paste':1,'pt-contenido':1,'gcal-client-id':1,
+              'lab-search':1,'bib-filter-tag':1,'bib-cons-search':1,
+              'bib-titulo':1,'bib-tags':1,'bib-pac-search':1};
+
+  /* IDs donde el botón IA tiene contexto clínico definido */
+  var CTX = {
+    'f-anamnesis'    :'anamnesis / historia clínica veterinaria neurológica',
+    'f-motivo'       :'motivo de consulta veterinaria',
+    'f-dx-pres'      :'diagnósticos presuntivos en neurología veterinaria',
+    'f-dx-def'       :'diagnóstico definitivo en neurología veterinaria',
+    'f-metodos'      :'métodos complementarios indicados',
+    'f-trat'         :'tratamiento neurológico veterinario (fármacos, dosis, frecuencia)',
+    'f-obs-fin'      :'observaciones finales de consulta neurológica',
+    'f-pc-obs'       :'observaciones de pares craneales',
+    'f-musc-obs'     :'observaciones musculares veterinarias',
+    'f-esquel'       :'evaluación esquelética veterinaria',
+    'f-loc-obs'      :'observaciones de localización neurológica',
+    'f-sens-obs'     :'observaciones de sensibilidad veterinaria',
+    'f-ur-obs'       :'observaciones urológicas veterinarias',
+    'f-esp-obs'      :'observaciones de reflejos espinales veterinarios',
+    'f-tono-obs'     :'observaciones de tono muscular veterinario',
+    'f-reac-obs'     :'observaciones de reacciones posturales veterinarias',
+    'f-pos-obs'      :'observaciones de postura veterinaria',
+    'f-march-obs'    :'observaciones de marcha veterinaria',
+    'f-par-obs'      :'distribución y grado de paresia veterinaria',
+    'f-atax-obs'     :'tipo y distribución de ataxia veterinaria',
+    'c-eco'          :'hallazgos ecocardiográficos y ECG veterinarios',
+    'c-trat'         :'tratamiento cardiológico veterinario',
+    'c-obs'          :'observaciones cardiológicas veterinarias',
+    'd-desc'         :'descripción de lesiones dermatológicas veterinarias',
+    'd-trat'         :'tratamiento dermatológico veterinario',
+    'cds-dif'        :'diagnóstico diferencial SDC veterinario',
+    'cds-trat-farm'  :'terapia farmacológica SDC veterinaria',
+    'cds-trat-amb'   :'modificación ambiental SDC veterinaria',
+    'cds-obs'        :'observaciones y recomendaciones SDC veterinarias',
+    'mcds-dif'       :'diagnóstico diferencial SDC veterinario',
+    'mcds-trat-farm' :'terapia farmacológica SDC veterinaria',
+    'mcds-trat-amb'  :'modificación ambiental SDC veterinaria',
+    'mcds-obs'       :'observaciones SDC veterinarias',
+    'f-archivos-desc':'descripción de hallazgos en métodos complementarios',
+    't-notas'        :'notas de turno veterinario',
+    't-mot'          :'motivo de turno veterinario',
+    'pt-notas'       :'alertas y notas adicionales de protocolo veterinario',
+    'bib-desc'       :'descripción de recurso bibliográfico veterinario'
+  };
+
+  /* ── Estado del reconocimiento ─────────────────────────────────── */
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var _recog = null;
+  var _activeTA = null;
+  var _activeBtn = null;
+  var _listening = false;
+  var _finalText = '';
+  var _baseValue = '';
+
+  /* ── SVG icons ─────────────────────────────────────────────────── */
+  var MIC_SVG = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>';
+  var STOP_SVG = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>';
+  var SPIN_SVG = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" style="animation:nv-mic-pulse .7s linear infinite"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>';
+
+  /* ── Voice helpers ─────────────────────────────────────────────── */
+  function stopListening(){
+    _listening = false;
+    if(_recog){ try{ _recog.stop(); }catch(e){} _recog = null; }
+    if(_activeBtn){
+      _activeBtn.classList.remove('nv-recording');
+      _activeBtn.innerHTML = MIC_SVG + ' Mic';
+      _activeBtn.title = 'Dictado por voz';
+    }
+    _activeTA = null; _activeBtn = null;
+    _finalText = ''; _baseValue = '';
+  }
+
+  function startListening(ta, btn){
+    if(!SR){
+      if(window.showToast) showToast('Tu navegador no soporta dictado por voz','error');
+      return;
+    }
+    if(_listening) stopListening();
+
+    _activeTA  = ta;
+    _activeBtn = btn;
+    _listening = true;
+    _finalText = '';
+    _baseValue = ta.value;
+
+    btn.classList.add('nv-recording');
+    btn.innerHTML = STOP_SVG + ' Stop';
+    btn.title = 'Detener dictado';
+
+    _recog = new SR();
+    _recog.lang = 'es-AR';
+    _recog.interimResults = true;
+    _recog.continuous = true;
+    _recog.maxAlternatives = 1;
+
+    _recog.onresult = function(e){
+      var interim = '';
+      for(var i = e.resultIndex; i < e.results.length; i++){
+        var chunk = e.results[i][0].transcript;
+        if(e.results[i].isFinal){ _finalText += chunk + ' '; }
+        else { interim += chunk; }
+      }
+      var sep = _baseValue && (_finalText || interim) ? '\n' : '';
+      ta.value = _baseValue + sep + _finalText + interim;
+      ta.dispatchEvent(new Event('input'));
+      ta.scrollTop = ta.scrollHeight;
+    };
+
+    _recog.onend = function(){
+      /* Si todavía queremos escuchar, reiniciar (Chrome cierra cada ~60 s) */
+      if(_listening && _activeTA === ta){
+        try{ _recog.start(); }catch(e){ stopListening(); }
+      }
+    };
+
+    _recog.onerror = function(e){
+      if(e.error === 'no-speech') return; /* ignorar silencio */
+      if(e.error === 'not-allowed'){
+        if(window.showToast) showToast('Permiso de micrófono denegado','error');
+      }
+      stopListening();
+    };
+
+    try{ _recog.start(); }
+    catch(e){ stopListening(); if(window.showToast) showToast('Error al iniciar micrófono','error'); }
+  }
+
+  /* ── AI improvement ────────────────────────────────────────────── */
+  async function aiImprove(ta, btn){
+    var text = ta.value.trim();
+    if(!text){
+      if(window.showToast) showToast('El campo está vacío','info');
+      return;
+    }
+    var apiKey = localStorage.getItem('nv_apikey') || '';
+    if(!apiKey){
+      if(window.showToast) showToast('Configurá tu clave API (☁️ → Sincronización)','error');
+      return;
+    }
+    var origHTML = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = SPIN_SVG + ' ...';
+    btn.title = 'Procesando...';
+
+    var ctx = CTX[ta.id] || 'nota clínica veterinaria';
+    try{
+      var res = await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version':'2023-06-01',
+          'anthropic-dangerous-direct-browser-access':'true'
+        },
+        body: JSON.stringify({
+          model:'claude-haiku-4-5',
+          max_tokens:1000,
+          system:'Sos NeuroVet AI, asistente de redacción clínica veterinaria del Dr. Sergio Vignaroli, Rosario, Argentina. Mejorás textos clínicos: corregís ortografía, mejorás sintaxis, usás terminología técnica veterinaria correcta. REGLA FUNDAMENTAL: no agregás ni eliminás datos clínicos. Respondés ÚNICAMENTE con el texto mejorado. Sin explicaciones, sin comillas, sin preámbulo.',
+          messages:[{
+            role:'user',
+            content:'Mejorá la redacción de este campo de '+ctx+'. Mantené TODOS los datos exactamente:\n\n'+text
+          }]
+        })
+      });
+      if(!res.ok){
+        var err = await res.json().catch(function(){ return {}; });
+        if(res.status === 401) throw new Error('Clave API inválida');
+        throw new Error((err.error && err.error.message) || 'Error HTTP '+res.status);
+      }
+      var data = await res.json();
+      var improved = (data.content||[]).map(function(c){ return c.text||''; }).join('').trim();
+      if(improved){
+        ta.value = improved;
+        ta.dispatchEvent(new Event('input'));
+        /* Flash verde breve para confirmar */
+        var prev = ta.style.background;
+        ta.style.transition = 'background .3s';
+        ta.style.background = '#dcfce7';
+        setTimeout(function(){ ta.style.transition='background .6s'; ta.style.background = prev; }, 900);
+        if(window.showToast) showToast('Redacción mejorada ✓','success');
+      }
+    }catch(e){
+      if(window.showToast) showToast('Error IA: '+e.message,'error');
+    }finally{
+      btn.disabled = false;
+      btn.innerHTML = origHTML;
+      btn.title = 'Mejorar redacción con IA';
+    }
+  }
+
+  /* ── Inject toolbar above a textarea ──────────────────────────── */
+  function enhance(ta){
+    if(ta.dataset.nvEnhanced || SKIP[ta.id]) return;
+    ta.dataset.nvEnhanced = '1';
+
+    var bar = document.createElement('div');
+    bar.className = 'nv-field-toolbar';
+
+    /* Micrófono */
+    if(SR){
+      var micBtn = document.createElement('button');
+      micBtn.type = 'button';
+      micBtn.className = 'nv-voice-btn';
+      micBtn.title = 'Dictado por voz';
+      micBtn.innerHTML = MIC_SVG + ' Mic';
+      micBtn.addEventListener('click', function(){
+        if(_listening && _activeTA === ta){ stopListening(); }
+        else { startListening(ta, micBtn); }
+      });
+      bar.appendChild(micBtn);
+    }
+
+    /* IA — para todos los textareas con ID (campos clínicos) */
+    if(ta.id){
+      var aiBtn = document.createElement('button');
+      aiBtn.type = 'button';
+      aiBtn.className = 'nv-ai-btn';
+      aiBtn.title = 'Mejorar redacción con IA';
+      aiBtn.innerHTML = '✨ IA';
+      aiBtn.addEventListener('click', function(){ aiImprove(ta, aiBtn); });
+      bar.appendChild(aiBtn);
+    }
+
+    if(bar.children.length > 0){
+      ta.parentElement.insertBefore(bar, ta);
+    }
+  }
+
+  /* ── Scan all textareas ────────────────────────────────────────── */
+  function scanAll(){
+    document.querySelectorAll('textarea[id]').forEach(enhance);
+  }
+
+  /* Primera pasada cuando el DOM esté listo */
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', scanAll);
+  } else {
+    setTimeout(scanAll, 0);
+  }
+
+  /* Segunda pasada al abrir modales (los textareas ya están en el DOM,
+     pero el toolbar se inserta solo si no se insertó antes) */
+  document.addEventListener('click', function(){
+    setTimeout(scanAll, 250);
+  }, true);
 
 })();
 </script>
