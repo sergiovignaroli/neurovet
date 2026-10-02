@@ -33,7 +33,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 /* ===== LOGIN ===== */
 #loginScreen { min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(135deg,#1a3a30 0%,#2d7d6b 60%,#43a047 100%); padding:20px; }
 .login-card { background:white; border-radius:24px; padding:44px 32px; max-width:380px; width:100%; text-align:center; box-shadow:0 24px 64px rgba(0,0,0,0.35); }
-.login-logo { font-size:52px; margin-bottom:10px; }
+.login-logo { margin-bottom:18px; display:flex; justify-content:center; align-items:center; }
+.login-logo img { max-width:200px; height:auto; filter:drop-shadow(0 4px 12px rgba(0,0,0,0.18)); }
 .login-title { font-size:1.9rem; font-weight:800; color:var(--primary-dark); margin-bottom:4px; }
 .login-subtitle { color:var(--text-muted); font-size:0.95rem; margin-bottom:32px; }
 .btn-google { display:flex; align-items:center; justify-content:center; gap:12px; width:100%; padding:14px 20px; border:2px solid #dadce0; border-radius:50px; background:white; cursor:pointer; font-size:1rem; font-weight:600; color:#3c4043; transition:all 0.2s; }
@@ -216,6 +217,35 @@ a { color:var(--primary); }
 @media (min-width:500px) {
   .field-row { grid-template-columns:1fr 1fr 1fr; }
 }
+
+/* ===== VADEMÉCUM ===== */
+.vad-search-wrap { position:relative; margin-bottom:10px; }
+.vad-filter-row { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+.vad-chip { padding:5px 11px; border-radius:20px; border:1.5px solid var(--border); background:white; font-size:0.75rem; font-weight:600; cursor:pointer; transition:all 0.15s; color:var(--text-muted); }
+.vad-chip.active { background:var(--primary); color:white; border-color:var(--primary); }
+.vad-item { background:white; border-radius:var(--radius); padding:12px 14px; margin-bottom:8px; box-shadow:var(--shadow); cursor:pointer; transition:transform 0.12s; }
+.vad-item:active { transform:scale(0.98); }
+.vad-item-top { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
+.vad-nombre { font-weight:700; font-size:0.95rem; }
+.vad-principio { font-size:0.79rem; color:var(--text-muted); margin-top:2px; }
+.vad-cat { font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:12px; background:var(--primary-light); color:var(--primary-dark); white-space:nowrap; flex-shrink:0; }
+.vad-dosis { font-size:0.8rem; margin-top:6px; color:#444; line-height:1.5; }
+.vad-fuente { font-size:0.7rem; color:#aaa; margin-top:4px; }
+.vad-empty { text-align:center; padding:40px 20px; color:var(--text-muted); }
+
+/* ===== ADJUNTOS ===== */
+.archivos-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(100px, 1fr)); gap:8px; margin-top:8px; }
+.archivo-thumb { border-radius:10px; overflow:hidden; background:#f0f0f0; aspect-ratio:1; position:relative; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+.archivo-thumb img { width:100%; height:100%; object-fit:cover; }
+.archivo-thumb video { width:100%; height:100%; object-fit:cover; }
+.archivo-thumb .archivo-icon { font-size:32px; }
+.archivo-thumb .archivo-del { position:absolute; top:4px; right:4px; background:rgba(229,57,53,0.9); color:white; border:none; border-radius:50%; width:22px; height:22px; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; line-height:1; }
+.archivo-thumb .archivo-nombre { position:absolute; bottom:0; left:0; right:0; background:rgba(0,0,0,0.55); color:white; font-size:0.62rem; padding:2px 4px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; }
+.upload-btn { border:2px dashed var(--primary); border-radius:10px; background:var(--primary-light); color:var(--primary); padding:12px; text-align:center; cursor:pointer; font-size:0.85rem; font-weight:600; transition:background 0.15s; }
+.upload-btn:hover { background:#d0ece5; }
+.upload-progress { height:4px; background:var(--primary-light); border-radius:2px; overflow:hidden; margin-top:6px; }
+.upload-progress-bar { height:100%; background:var(--primary); width:0; transition:width 0.3s; }
+
 </style>
 </head>
 <body>
@@ -351,6 +381,17 @@ a { color:var(--primary); }
       </div>
     </div>
 
+
+    <!-- === VADEMÉCUM === -->
+    <div id="screenVademecum" class="screen">
+      <div class="vad-search-wrap">
+        <span class="search-icon">🔍</span>
+        <input class="search-box" id="vadSearch" type="text" placeholder="Buscar droga o principio activo…" oninput="filtrarVad()">
+      </div>
+      <div class="vad-filter-row" id="vadFiltros"></div>
+      <div id="listaVad"></div>
+    </div>
+
   </div><!-- /main-content -->
 
   <!-- BOTTOM NAV -->
@@ -370,6 +411,14 @@ a { color:var(--primary); }
         <line x1="3" y1="10" x2="21" y2="10"/>
       </svg>
       Turnos
+    </button>
+    <button class="nav-btn" id="navBtnVademecum" onclick="goTab('Vademecum')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+        <path d="M2 17l10 5 10-5"/>
+        <path d="M2 12l10 5 10-5"/>
+      </svg>
+      Vademécum
     </button>
     <button class="nav-btn" id="navBtnAdmin" style="display:none" onclick="goTab('Admin')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -402,7 +451,7 @@ const MARCA = {
 // ============================================================
 //  CONFIG — COMPLETAR ANTES DE PUBLICAR
 // ============================================================
-const GOOGLE_CLIENT_ID = '1098310369343-js41f1s1eokuslvmpc56hlo29s0j1rqd.apps.googleusercontent.com';   // ← OAuth 2.0 Web Client ID de Google Cloud Console
+const GOOGLE_CLIENT_ID = '';   // ← OAuth 2.0 Web Client ID de Google Cloud Console
 const SUPABASE_URL     = 'https://cnbovfeifekyyyyaktbl.supabase.co';
 const SUPABASE_KEY     = 'sb_publishable_x0ozgxBWKOlTFCKxHtfWVQ_2M1p-fC4';
 const GCAL_SCOPE       = 'https://www.googleapis.com/auth/calendar';
@@ -561,6 +610,10 @@ function goTab(tab) {
     showScreen('screenTurnos');
     renderCalendario();
     cargarTurnos();
+  } else if (tab === 'Vademecum') {
+    document.getElementById('navBtnVademecum').classList.add('active');
+    showScreen('screenVademecum');
+    initVad();
   } else if (tab === 'Admin') {
     document.getElementById('navBtnAdmin').classList.add('active');
     showScreen('screenAdmin');
@@ -974,6 +1027,142 @@ function buildFormFicha(f, pacId) {
   `;
 }
 
+// ─────────────────────────────────────────────
+//  ADJUNTOS — ARCHIVOS POR FICHA
+// ─────────────────────────────────────────────
+async function cargarArchivos(fichaId) {
+  if (!fichaId) return [];
+  try {
+    return await sb.select('cg_archivos', `ficha_id=eq.${fichaId}&order=created_at.asc`) || [];
+  } catch(e) { return []; }
+}
+
+function tipoIcono(mime) {
+  if (!mime) return '📎';
+  if (mime.startsWith('image/')) return '🖼️';
+  if (mime.startsWith('video/')) return '🎬';
+  if (mime === 'application/pdf') return '📄';
+  if (mime.includes('spreadsheet') || mime.includes('excel') || mime.includes('csv')) return '📊';
+  return '📎';
+}
+
+async function renderArchivos(fichaId, containerId, editable) {
+  const cont = document.getElementById(containerId);
+  if (!cont) return;
+  const archivos = await cargarArchivos(fichaId);
+  let html2 = `<div class="archivos-grid" id="archGrid_${fichaId}">`;
+  for (const a of archivos) {
+    const isImg  = (a.mime_type||'').startsWith('image/');
+    const isVid  = (a.mime_type||'').startsWith('video/');
+    const icono  = tipoIcono(a.mime_type);
+    const delBtn = editable ? `<button class="archivo-del" onclick="eliminarArchivo('${a.id}','${fichaId}','${containerId}',${editable})" title="Eliminar">×</button>` : '';
+    if (isImg) {
+      html2 += `<div class="archivo-thumb">${delBtn}<img src="${escHtml(a.url)}" onclick="window.open('${escHtml(a.url)}','_blank')" loading="lazy"><span class="archivo-nombre">${escHtml(a.nombre)}</span></div>`;
+    } else if (isVid) {
+      html2 += `<div class="archivo-thumb">${delBtn}<video src="${escHtml(a.url)}" onclick="window.open('${escHtml(a.url)}','_blank')" preload="metadata"></video><span class="archivo-nombre">${escHtml(a.nombre)}</span></div>`;
+    } else {
+      html2 += `<div class="archivo-thumb" onclick="window.open('${escHtml(a.url)}','_blank')">${delBtn}<span class="archivo-icon">${icono}</span><span class="archivo-nombre">${escHtml(a.nombre)}</span></div>`;
+    }
+  }
+  if (editable) {
+    html2 += `<label class="upload-btn" for="fileInput_${fichaId}" title="Agregar archivo">
+      ➕ Adjuntar<br><span style="font-size:0.7rem;font-weight:400">imagen·video·PDF·texto·planilla</span>
+    </label>
+    <input type="file" id="fileInput_${fichaId}" style="display:none" accept="image/*,video/*,.pdf,.txt,.csv,.xls,.xlsx,.doc,.docx" onchange="subirArchivo(event,'${fichaId}','${containerId}')">
+    <div class="upload-progress" id="upProg_${fichaId}" style="display:none"><div class="upload-progress-bar" id="upProgBar_${fichaId}"></div></div>`;
+  }
+  html2 += '</div>';
+  cont.innerHTML = html2;
+}
+
+async function subirArchivo(event, fichaId, containerId) {
+  const file = event.target.files[0];
+  if (!file) return;
+  // Límite de tamaño
+  const MB = file.size / 1024 / 1024;
+  const isVid = file.type.startsWith('video/');
+  const maxMB = isVid ? 30 : 10;
+  if (MB > maxMB) { showToast(\`El archivo es demasiado grande (máx \${maxMB}MB)\`, 'error'); return; }
+  // Para videos, verificar duración ≤ 10 s
+  if (isVid) {
+    const ok = await new Promise(res => {
+      const vid = document.createElement('video');
+      vid.preload = 'metadata';
+      vid.onloadedmetadata = () => { URL.revokeObjectURL(vid.src); res(vid.duration <= 10); };
+      vid.onerror = () => res(true); // si no se puede verificar, dejar pasar
+      vid.src = URL.createObjectURL(file);
+    });
+    if (!ok) { showToast('El video debe ser de máximo 10 segundos', 'error'); return; }
+  }
+  // Mostrar progreso
+  const progEl = document.getElementById(\`upProg_\${fichaId}\`);
+  const barEl  = document.getElementById(\`upProgBar_\${fichaId}\`);
+  if (progEl) { progEl.style.display = 'block'; barEl.style.width = '10%'; }
+  try {
+    const ext  = file.name.split('.').pop();
+    const path = \`\${fichaId}/\${Date.now()}_\${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}\`;
+    const uploadUrl = \`\${SUPABASE_URL}/storage/v1/object/cg-archivos/\${path}\`;
+    if (barEl) barEl.style.width = '40%';
+    const upRes = await fetch(uploadUrl, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': \`Bearer \${SUPABASE_KEY}\`,
+        'Content-Type': file.type || 'application/octet-stream',
+        'x-upsert': 'true'
+      },
+      body: file
+    });
+    if (!upRes.ok) {
+      const err = await upRes.text();
+      throw new Error(\`Storage: \${err}\`);
+    }
+    if (barEl) barEl.style.width = '80%';
+    const pubUrl = \`\${SUPABASE_URL}/storage/v1/object/public/cg-archivos/\${path}\`;
+    await sb.insert('cg_archivos', {
+      ficha_id:   fichaId,
+      nombre:     file.name,
+      mime_type:  file.type,
+      storage_path: path,
+      url:        pubUrl,
+      tamanio:    file.size,
+      created_by: currentUser?.email
+    });
+    if (barEl) barEl.style.width = '100%';
+    showToast('Archivo adjuntado ✓', 'ok');
+    setTimeout(() => { if (progEl) progEl.style.display = 'none'; }, 600);
+    await renderArchivos(fichaId, containerId, true);
+  } catch(e) {
+    if (progEl) progEl.style.display = 'none';
+    console.error(e);
+    showToast('Error al subir archivo: ' + e.message, 'error');
+  }
+  event.target.value = '';
+}
+
+async function eliminarArchivo(archivoId, fichaId, containerId, editable) {
+  if (!confirm('¿Eliminar este archivo?')) return;
+  try {
+    const rows = await sb.select('cg_archivos', \`id=eq.\${archivoId}\`);
+    if (rows && rows[0]?.storage_path) {
+      const delUrl = \`\${SUPABASE_URL}/storage/v1/object/cg-archivos/\${rows[0].storage_path}\`;
+      await fetch(delUrl, { method:'DELETE', headers:{ 'apikey': SUPABASE_KEY, 'Authorization': \`Bearer \${SUPABASE_KEY}\` } });
+    }
+    await sb.delete('cg_archivos', \`id=eq.\${archivoId}\`);
+    showToast('Archivo eliminado', 'ok');
+    await renderArchivos(fichaId, containerId, editable);
+  } catch(e) { showToast('Error al eliminar', 'error'); }
+}
+
+// inject archivos after form builds (called from abrirFormFicha)
+async function postBuildFormFicha(fichaId) {
+  if (fichaId) {
+    await renderArchivos(fichaId, 'archivosContForm', true);
+  } else {
+    document.getElementById('archivosContForm').innerHTML = '<div style="font-size:0.8rem;color:var(--text-muted);">Guardá la ficha primero para poder adjuntar archivos.</div>';
+  }
+}
+
 async function guardarFicha(fichaId, pacId) {
   if (!pacId) { showToast('Error: sin paciente', 'error'); return; }
   const motivo = (document.getElementById('ff_motivo').value||'').trim();
@@ -1043,6 +1232,14 @@ async function imprimirHistoria(pacId) {
   if (!p) return;
   let fichas = [];
   try { fichas = await sb.select('cg_fichas', `paciente_id=eq.${pacId}&order=fecha.desc`) || []; } catch(e) {}
+  // After fichas load, asynchronously add archivos containers to each ficha card
+  setTimeout(async () => {
+    for (const f of fichas) {
+      const contId = `archivos_det_${f.id}`;
+      const el = document.getElementById(contId);
+      if (el) await renderArchivos(f.id, contId, false);
+    }
+  }, 200);
 
   const edad = calcEdad(p.fecha_nacimiento);
   const win = window.open('', '_blank');
@@ -1564,6 +1761,302 @@ window.addEventListener('load', () => {
 
   tryRestoreSession();
 });
+
+// ============================================================
+//  VADEMÉCUM
+// ============================================================
+const VAD_CATS = ['Todos','Antibiótico','Antihistamínico','Tranquilizante','Antiemético','Antidiarreico','AINE','AIE','Antifúngico'];
+
+// 100 drogas veterinarias verificadas (fuente: Plumb's Veterinary Drug Handbook 10.ª ed.)
+const VAD_SEED = [
+// ── Antibióticos (10) ────────────────────────────────────
+{n:'Amoxicilina',p:'Amoxicilina trihidrato',c:'Antibiótico',dp:'20 mg/kg VO c/12 h',dg:'20 mg/kg VO c/12 h',v:'VO, SC, IM',pr:'Comp 500 mg; Susp 250 mg/5 ml',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Amoxicilina-Clavulánico',p:'Amoxicilina + Ácido clavulánico',c:'Antibiótico',dp:'20 mg/kg VO c/12 h',dg:'20 mg/kg VO c/12 h',v:'VO',pr:'Comp 500/125 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Cefalexina',p:'Cefalexina monohidrato',c:'Antibiótico',dp:'22 mg/kg VO c/8-12 h',dg:'22 mg/kg VO c/12 h',v:'VO',pr:'Comp 500 mg, 1 g',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Doxiciclina',p:'Doxiciclina hiclato',c:'Antibiótico',dp:'5-10 mg/kg VO c/12-24 h',dg:'5 mg/kg VO c/12 h',v:'VO, IV lento',pr:'Comp 100 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Enrofloxacina',p:'Enrofloxacina',c:'Antibiótico',dp:'5-20 mg/kg VO/SC c/24 h',dg:'5 mg/kg VO c/24 h (⚠️ retinotóxica dosis altas)',v:'VO, SC',pr:'Comp 50/150 mg; Iny 50 mg/ml',ci:'Gatos: máx 5 mg/kg',f:'Plumb\'s 10th Ed.'},
+{n:'Metronidazol',p:'Metronidazol',c:'Antibiótico',dp:'15-25 mg/kg VO c/12 h',dg:'10-25 mg/kg VO c/12 h',v:'VO, IV',pr:'Comp 250/500 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Clindamicina',p:'Clindamicina HCl',c:'Antibiótico',dp:'10-15 mg/kg VO c/12 h',dg:'10 mg/kg VO c/12 h',v:'VO, IM',pr:'Comp 150/300 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Gentamicina',p:'Gentamicina sulfato',c:'Antibiótico',dp:'6-9 mg/kg SC/IM c/24 h',dg:'6 mg/kg SC/IM c/24 h',v:'SC, IM, IV',pr:'Iny 40 mg/ml',ci:'Insuficiencia renal — nefrotóxico',f:'Plumb\'s 10th Ed.'},
+{n:'Trimetoprim-Sulfadiazina',p:'TMP-SDZ',c:'Antibiótico',dp:'30 mg/kg VO c/12-24 h',dg:'30 mg/kg VO c/12 h',v:'VO',pr:'Comp 80/400 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Azitromicina',p:'Azitromicina dihidrato',c:'Antibiótico',dp:'5-10 mg/kg VO c/24 h',dg:'5 mg/kg VO c/24 h',v:'VO',pr:'Comp 250/500 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+// ── Antihistamínicos (10) ─────────────────────────────────
+{n:'Difenhidramina',p:'Difenhidramina HCl',c:'Antihistamínico',dp:'2-4 mg/kg VO c/8 h',dg:'2 mg/kg VO c/8-12 h',v:'VO, IM, SC, IV lento',pr:'Comp 25/50 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Clorfenamina',p:'Clorfeniramina maleato',c:'Antihistamínico',dp:'0.5 mg/kg VO c/8-12 h',dg:'0.5 mg/kg VO c/12 h',v:'VO',pr:'Comp 4 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Cetirizina',p:'Cetirizina HCl',c:'Antihistamínico',dp:'1 mg/kg VO c/24 h',dg:'1 mg/kg VO c/24 h',v:'VO',pr:'Comp 10 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Loratadina',p:'Loratadina',c:'Antihistamínico',dp:'0.5 mg/kg VO c/24 h',dg:'No establecida',v:'VO',pr:'Comp 10 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Hidroxizina',p:'Hidroxizina HCl',c:'Antihistamínico',dp:'2.2 mg/kg VO c/8 h',dg:'2 mg/kg VO c/12 h',v:'VO',pr:'Comp 25/50 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Fexofenadina',p:'Fexofenadina HCl',c:'Antihistamínico',dp:'2-5 mg/kg VO c/12-24 h',dg:'No establecida',v:'VO',pr:'Comp 120/180 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Clemastina',p:'Clemastina fumarato',c:'Antihistamínico',dp:'0.05-0.1 mg/kg VO c/12 h',dg:'0.68 mg/gato VO c/12 h',v:'VO',pr:'Comp 1 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Ciproheptadina',p:'Ciproheptadina HCl',c:'Antihistamínico',dp:'0.3 mg/kg VO c/8-12 h',dg:'1-4 mg/gato VO c/12 h (estim. apetito)',v:'VO',pr:'Comp 4 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Prometazina',p:'Prometazina HCl',c:'Antihistamínico',dp:'0.5-1 mg/kg VO c/12 h',dg:'Usar con precaución',v:'VO, IM',pr:'Comp 25 mg',ci:'Sedación',f:'Plumb\'s 10th Ed.'},
+{n:'Oxatomida',p:'Oxatomida',c:'Antihistamínico',dp:'1 mg/kg VO c/12 h',dg:'1 mg/kg VO c/12 h',v:'VO',pr:'Comp 30 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+// ── Tranquilizantes (10) ──────────────────────────────────
+{n:'Acepromazina',p:'Maleato de acepromazina',c:'Tranquilizante',dp:'0.03-0.05 mg/kg IM/SC (máx 3 mg)',dg:'0.05-0.1 mg/kg IM/SC',v:'IM, SC, IV lento',pr:'Iny 10 mg/ml',ci:'Epilepsia, shock, hepatopatía grave',f:'Plumb\'s 10th Ed.'},
+{n:'Diazepam',p:'Diazepam',c:'Tranquilizante',dp:'0.5-1 mg/kg IV (crisis); 2-5 mg/kg rectal',dg:'0.5-1 mg/kg IV',v:'IV, IM, rectal, VO',pr:'Iny 5 mg/ml; Comp 5 mg',ci:'Potencia efecto barbitúricos',f:'Plumb\'s 10th Ed.'},
+{n:'Midazolam',p:'Midazolam HCl',c:'Tranquilizante',dp:'0.1-0.25 mg/kg IV/IM',dg:'0.1-0.25 mg/kg IV/IM',v:'IV, IM, intranasal',pr:'Iny 5 mg/ml',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Medetomidina',p:'Medetomidina HCl',c:'Tranquilizante',dp:'10-40 mcg/kg IM',dg:'50-100 mcg/kg IM',v:'IM, SC, IV',pr:'Iny 1 mg/ml',ci:'Enf. cardiovascular, diabetes, hipotensión',f:'Plumb\'s 10th Ed.'},
+{n:'Dexmedetomidina',p:'Dexmedetomidina HCl',c:'Tranquilizante',dp:'5-20 mcg/kg IM',dg:'20-40 mcg/kg IM',v:'IM, IV CRI',pr:'Iny 0.5 mg/ml',ci:'Enf. cardiovascular',f:'Plumb\'s 10th Ed.'},
+{n:'Xilazina',p:'Xilazina HCl',c:'Tranquilizante',dp:'1-3 mg/kg IM',dg:'1-2 mg/kg IM',v:'IM, SC, IV',pr:'Iny 20/100 mg/ml',ci:'Bradicardia; tener atipamezol disponible',f:'Plumb\'s 10th Ed.'},
+{n:'Trazodona',p:'Trazodona HCl',c:'Tranquilizante',dp:'2-5 mg/kg VO c/8-24 h',dg:'50 mg/gato VO c/24 h',v:'VO',pr:'Comp 50/100 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Gabapentina',p:'Gabapentina',c:'Tranquilizante',dp:'5-10 mg/kg VO c/8-12 h',dg:'5-10 mg/kg VO c/12 h',v:'VO',pr:'Comp 300/400 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Alprazolam',p:'Alprazolam',c:'Tranquilizante',dp:'0.01-0.1 mg/kg VO c/8-24 h',dg:'0.125-0.25 mg/gato VO c/12 h',v:'VO',pr:'Comp 0.25/0.5/1 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Fenobarbital',p:'Fenobarbital sódico',c:'Tranquilizante',dp:'2-5 mg/kg VO c/12 h',dg:'2.5-5 mg/kg VO c/12 h',v:'VO, IV',pr:'Comp 100 mg',ci:'Hepatotoxicidad crónica — monitorear FA y ALT',f:'Plumb\'s 10th Ed.'},
+// ── Antieméticos (10) ─────────────────────────────────────
+{n:'Metoclopramida',p:'Metoclopramida HCl',c:'Antiemético',dp:'0.2-0.5 mg/kg VO/SC c/6-8 h',dg:'0.2-0.5 mg/kg SC c/6-8 h',v:'VO, SC, IM, IV CRI',pr:'Comp 10 mg; Iny 5 mg/ml',ci:'Obstrucción GI',f:'Plumb\'s 10th Ed.'},
+{n:'Ondansetrón',p:'Ondansetrón HCl',c:'Antiemético',dp:'0.1-0.2 mg/kg IV/VO c/6-12 h',dg:'0.1 mg/kg IV/VO c/6-12 h',v:'VO, IV',pr:'Comp 4/8 mg; Iny 2 mg/ml',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Maropitant (Cerenia®)',p:'Maropitant citrato',c:'Antiemético',dp:'1 mg/kg SC c/24 h; 2 mg/kg VO c/24 h',dg:'1 mg/kg SC c/24 h',v:'VO, SC',pr:'Comp 16/24/60/160 mg; Iny 10 mg/ml',ci:'<4 meses de edad',f:'Plumb\'s 10th Ed.'},
+{n:'Clorpromazina',p:'Clorpromazina HCl',c:'Antiemético',dp:'0.5 mg/kg IM/SC c/6-8 h',dg:'0.2-0.5 mg/kg IM/SC c/6-8 h',v:'IM, SC, IV',pr:'Iny 25 mg/ml',ci:'Hipotensión, epilepsia',f:'Plumb\'s 10th Ed.'},
+{n:'Domperidona',p:'Domperidona',c:'Antiemético',dp:'0.1-0.3 mg/kg VO c/8 h',dg:'2.5 mg/gato VO c/8 h',v:'VO',pr:'Comp 10 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Dolasetrón',p:'Dolasetrón mesilato',c:'Antiemético',dp:'0.6 mg/kg IV/VO una vez',dg:'0.6 mg/kg IV/VO una vez',v:'VO, IV',pr:'Comp 50/100 mg; Iny 20 mg/ml',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Mirtazapina',p:'Mirtazapina',c:'Antiemético',dp:'0.6 mg/kg VO c/72 h (también orexigénico)',dg:'1.88 mg/gato parche transdérm. c/24 h',v:'VO, transdérmico',pr:'Comp 15/30 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Ranitidina',p:'Ranitidina HCl',c:'Antiemético',dp:'2 mg/kg VO/IV c/8-12 h',dg:'2.5 mg/kg VO/IV c/12 h',v:'VO, IV',pr:'Comp 150/300 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Famotidina',p:'Famotidina',c:'Antiemético',dp:'0.5-1 mg/kg VO/IV c/12-24 h',dg:'0.5 mg/kg VO/IV c/24 h',v:'VO, IV',pr:'Comp 20/40 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Omeprazol',p:'Omeprazol',c:'Antiemético',dp:'1-2 mg/kg VO c/24 h',dg:'0.7-1 mg/kg VO c/24 h',v:'VO, IV',pr:'Comp 20/40 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+// ── Antidiarreicos (10) ───────────────────────────────────
+{n:'Loperamida',p:'Loperamida HCl',c:'Antidiarreico',dp:'0.1-0.2 mg/kg VO c/8 h',dg:'0.08-0.16 mg/kg VO c/12 h',v:'VO',pr:'Comp 2 mg',ci:'Gatos MDR1 mutado; obstrucción intestinal',f:'Plumb\'s 10th Ed.'},
+{n:'Metronidazol (GI)',p:'Metronidazol',c:'Antidiarreico',dp:'15-25 mg/kg VO c/12 h',dg:'10-25 mg/kg VO c/12 h',v:'VO',pr:'Comp 250/500 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Fenbendazol',p:'Fenbendazol',c:'Antidiarreico',dp:'50 mg/kg VO c/24 h × 3-5 días (Giardia)',dg:'50 mg/kg VO c/24 h × 5 días',v:'VO',pr:'Polvo/pasta/granulado',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Sulfasalazina',p:'Sulfasalazina',c:'Antidiarreico',dp:'20-50 mg/kg VO c/8-12 h (máx 4-6 sem)',dg:'20 mg/kg VO c/24 h',v:'VO',pr:'Comp 500 mg',ci:'Colitis; monitorear disfunción lagrimal en gatos',f:'Plumb\'s 10th Ed.'},
+{n:'Tylosina (Tilosina)',p:'Tilosina tartrato',c:'Antidiarreico',dp:'20-80 mg/kg VO c/24 h (diarrea crónica)',dg:'10-20 mg/kg VO c/12-24 h',v:'VO',pr:'Polvo soluble',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Bismuto subcitrato',p:'Bismuto subcitrato coloidal',c:'Antidiarreico',dp:'0.25 ml/kg VO c/4 h (máx 8 dosis)',dg:'CONTRAINDICADO (salicilatos)',v:'VO',pr:'Líq. oral 17.5 mg/ml',ci:'Gatos; no con AINEs',f:'Plumb\'s 10th Ed.'},
+{n:'Diosmectita',p:'Diosmectita',c:'Antidiarreico',dp:'2-3 g/10 kg VO c/8 h',dg:'1 g/gato VO c/8 h',v:'VO',pr:'Polvo/sobres 3 g',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Colestiramina',p:'Colestiramina resinato',c:'Antidiarreico',dp:'1-2 g/perro VO c/8 h',dg:'1 g/gato VO c/12 h',v:'VO',pr:'Polvo',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Kaopectato (Caolín-Pectina)',p:'Caolín + Pectina',c:'Antidiarreico',dp:'1-2 ml/kg VO c/4-6 h',dg:'1 ml/kg VO c/4-6 h',v:'VO',pr:'Suspensión oral',ci:'',f:'Small Animal Internal Medicine, Nelson & Couto'},
+{n:'Fortiflora® (Probiótico)',p:'Enterococcus faecium SF68',c:'Antidiarreico',dp:'1 sobre/día VO con alimento',dg:'1 sobre/día VO con alimento',v:'VO',pr:'Sobres 1 g',ci:'',f:'Purina Pro Plan Veterinary Diets'},
+// ── AINEs (20) ───────────────────────────────────────────
+{n:'Meloxicam',p:'Meloxicam',c:'AINE',dp:'0.2 mg/kg VO/SC día 1; 0.1 mg/kg c/24 h',dg:'0.1 mg/kg VO/SC día 1; 0.05 mg/kg c/24-48 h',v:'VO, SC',pr:'Sol oral 0.5/1.5 mg/ml; Iny 5 mg/ml',ci:'Insuficiencia renal, hepática o cardíaca',f:'Plumb\'s 10th Ed.'},
+{n:'Carprofeno',p:'Carprofeno',c:'AINE',dp:'4.4 mg/kg VO/SC c/24 h o 2.2 mg/kg c/12 h',dg:'2 mg/kg SC dosis única (uso limitado)',v:'VO, SC',pr:'Comp 25/50/100 mg',ci:'Insuficiencia renal/hepática',f:'Plumb\'s 10th Ed.'},
+{n:'Ketoprofeno',p:'Ketoprofeno',c:'AINE',dp:'2 mg/kg IM/SC día 1; 1 mg/kg VO c/24 h × 4 d',dg:'1 mg/kg SC/IM',v:'VO, SC, IM',pr:'Comp 50/100 mg; Iny 10 mg/ml',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Dipirona (Metamizol)',p:'Dipirona sódica',c:'AINE',dp:'25-35 mg/kg IM/IV c/8 h',dg:'25 mg/kg IM c/12 h',v:'VO, IM, IV',pr:'Iny 500 mg/ml; Comp 500 mg',ci:'Trombocitopenia con uso crónico',f:'Plumb\'s 10th Ed.'},
+{n:'Ácido acetilsalicílico',p:'Ácido acetilsalicílico',c:'AINE',dp:'10-25 mg/kg VO c/12 h',dg:'10 mg/kg VO c/48-72 h (⚠️ muy peligroso)',v:'VO',pr:'Comp 100/500 mg',ci:'Gatos: metabolismo lento — usar con extrema precaución',f:'Plumb\'s 10th Ed.'},
+{n:'Flunixin meglumina',p:'Flunixin meglumina',c:'AINE',dp:'0.5-1.1 mg/kg IV/IM una vez (máx 3 d)',dg:'0.25 mg/kg IV dosis única',v:'IV, IM',pr:'Iny 50 mg/ml',ci:'No VO en pequeños animales; nefrotóxico',f:'Plumb\'s 10th Ed.'},
+{n:'Tolfenámico ácido',p:'Ácido tolfenámico',c:'AINE',dp:'4 mg/kg VO/SC c/24 h × 3 días',dg:'4 mg/kg VO/SC c/24 h × 3 días',v:'VO, SC',pr:'Comp 6/20/60 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Firocoxib',p:'Firocoxib',c:'AINE',dp:'5 mg/kg VO c/24 h',dg:'No aprobado',v:'VO',pr:'Comp 57/227 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Robenacoxib',p:'Robenacoxib',c:'AINE',dp:'2 mg/kg VO c/24 h (máx 7 d agudo)',dg:'1-2.4 mg/kg VO c/24 h (máx 6 d)',v:'VO, SC',pr:'Comp 6/20/40 mg; Iny 20 mg/ml',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Grapiprant',p:'Grapiprant',c:'AINE',dp:'2 mg/kg VO c/24 h',dg:'No aprobado',v:'VO',pr:'Comp 20/60/100 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Vedaprofeno',p:'Vedaprofeno',c:'AINE',dp:'0.5 mg/kg VO c/24 h',dg:'No establecida',v:'VO',pr:'Gel oral 0.5 mg/ml',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Deracoxib',p:'Deracoxib',c:'AINE',dp:'3-4 mg/kg VO c/24 h post-cir; 1-2 mg/kg crónico',dg:'No aprobado',v:'VO',pr:'Comp 25/75 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Mavacoxib',p:'Mavacoxib',c:'AINE',dp:'2 mg/kg VO × 2 (día 1 y 14), luego mensual',dg:'No aprobado',v:'VO',pr:'Comp 6/20/30/75/95 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Etodolac',p:'Etodolac',c:'AINE',dp:'10-15 mg/kg VO c/24 h',dg:'No aprobado',v:'VO',pr:'Comp 150/300 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Piroxicam',p:'Piroxicam',c:'AINE',dp:'0.3 mg/kg VO c/24-48 h',dg:'0.3 mg/kg VO c/24-48 h',v:'VO',pr:'Comp 10/20 mg',ci:'Úlcera GI; uso oncológico',f:'Plumb\'s 10th Ed.'},
+{n:'Nimesulida',p:'Nimesulida',c:'AINE',dp:'5 mg/kg VO c/12 h',dg:'No recomendado',v:'VO',pr:'Comp 100 mg',ci:'Hepatotoxicidad reportada',f:'Plumb\'s 10th Ed.'},
+{n:'Celecoxib',p:'Celecoxib',c:'AINE',dp:'2.5 mg/kg VO c/12 h',dg:'No establecida',v:'VO',pr:'Comp 100/200 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Ibuprofeno',p:'Ibuprofeno',c:'AINE',dp:'⚠️ TÓXICO — NO USAR EN PERROS',dg:'⚠️ CONTRAINDICADO',v:'-',pr:'Comp',ci:'TÓXICO en perros y gatos — úlceras GI, fallo renal',f:'Plumb\'s 10th Ed.'},
+{n:'Naproxeno',p:'Naproxeno sódico',c:'AINE',dp:'⚠️ TÓXICO — NO USAR',dg:'⚠️ CONTRAINDICADO',v:'-',pr:'Comp',ci:'TÓXICO en perros y gatos',f:'Plumb\'s 10th Ed.'},
+{n:'Ácido meclofenámico',p:'Ácido meclofenámico',c:'AINE',dp:'1.1 mg/kg VO c/24 h × 5-7 d',dg:'No recomendado',v:'VO',pr:'Comp/polvo',ci:'',f:'Plumb\'s 10th Ed.'},
+// ── AIEs — Corticosteroides (10) ──────────────────────────
+{n:'Prednisolona',p:'Prednisolona',c:'AIE',dp:'1-2 mg/kg VO c/24 h (antiinfl); 4-8 mg/kg (inmunosupr)',dg:'1-2 mg/kg VO c/24 h',v:'VO, IV, IM',pr:'Comp 5/20 mg',ci:'Diabetes, hiperadrenocorticismo',f:'Plumb\'s 10th Ed.'},
+{n:'Prednisona',p:'Prednisona',c:'AIE',dp:'1-2 mg/kg VO c/24 h',dg:'2 mg/kg VO c/24 h (preferir prednisolona)',v:'VO',pr:'Comp 5/20/50 mg',ci:'Diabetes, úlcera',f:'Plumb\'s 10th Ed.'},
+{n:'Dexametasona',p:'Dexametasona fosfato',c:'AIE',dp:'0.1-0.2 mg/kg IV/IM/SC',dg:'0.1-0.2 mg/kg IV/IM/SC',v:'IV, IM, SC',pr:'Iny 2/4 mg/ml',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Metilprednisolona',p:'Metilprednisolona',c:'AIE',dp:'1-2.2 mg/kg VO c/24 h; 30 mg/kg IV lento (shock)',dg:'1-2 mg/kg VO c/24 h',v:'VO, IV, IM',pr:'Comp 4/16 mg; Iny 40/125 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Betametasona',p:'Betametasona',c:'AIE',dp:'0.1-0.2 mg/kg IM',dg:'0.1-0.2 mg/kg IM',v:'IM',pr:'Iny 4 mg/ml',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Triamcinolona',p:'Triamcinolona acetónido',c:'AIE',dp:'0.1-0.2 mg/kg VO c/12-24 h; 0.1 mg/kg IA',dg:'0.1-0.2 mg/kg VO c/12-24 h',v:'VO, IM, IA',pr:'Comp 4 mg; Susp iny 40 mg/ml',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Hidrocortisona',p:'Hidrocortisona succinato',c:'AIE',dp:'1-5 mg/kg VO c/12 h (reemplazo)',dg:'1-5 mg/kg VO c/12 h',v:'VO, IV, IM',pr:'Comp 10/20 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Fludrocortisona',p:'Acetato de fludrocortisona',c:'AIE',dp:'0.01-0.02 mg/kg VO c/24 h (hipoadrenocorti.)',dg:'0.1-0.2 mg/gato VO c/24 h',v:'VO',pr:'Comp 0.1 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Budesonida',p:'Budesonida',c:'AIE',dp:'1-3 mg/perro VO c/24 h (EII)',dg:'0.5-1 mg/gato VO c/24 h',v:'VO',pr:'Comp 3/9 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Deflazacort',p:'Deflazacort',c:'AIE',dp:'0.5-1 mg/kg VO c/24 h',dg:'No establecida',v:'VO',pr:'Comp 6/30 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+// ── Antifúngicos (10) ─────────────────────────────────────
+{n:'Itraconazol',p:'Itraconazol',c:'Antifúngico',dp:'5 mg/kg VO c/12 h o 10 mg/kg c/24 h',dg:'5-10 mg/kg VO c/12-24 h',v:'VO',pr:'Cáps 100 mg',ci:'Hepatotoxicidad — monitorear enzimas hepáticas',f:'Plumb\'s 10th Ed.'},
+{n:'Fluconazol',p:'Fluconazol',c:'Antifúngico',dp:'5-10 mg/kg VO c/12-24 h',dg:'50 mg/gato VO c/12-24 h',v:'VO, IV',pr:'Comp 50/100/150/200 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Ketoconazol',p:'Ketoconazol',c:'Antifúngico',dp:'10-15 mg/kg VO c/12 h',dg:'5-10 mg/kg VO c/12 h',v:'VO',pr:'Comp 200 mg',ci:'Hepatotóxico — preferir itraconazol o fluconazol',f:'Plumb\'s 10th Ed.'},
+{n:'Terbinafina',p:'Clorhidrato de terbinafina',c:'Antifúngico',dp:'5-10 mg/kg VO c/24 h',dg:'30 mg/gato VO c/24 h',v:'VO',pr:'Comp 125/250 mg',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Griseofulvina',p:'Griseofulvina micronizada',c:'Antifúngico',dp:'25-60 mg/kg VO c/24 h (con grasa)',dg:'25-50 mg/kg VO c/12 h',v:'VO',pr:'Comp 125/250/500 mg',ci:'Gatas gestantes — TERATOGÉNICO',f:'Plumb\'s 10th Ed.'},
+{n:'Voriconazol',p:'Voriconazol',c:'Antifúngico',dp:'4 mg/kg VO/IV c/12 h',dg:'⚠️ NEUROTÓXICO — no usar en gatos',v:'VO, IV',pr:'Comp 50/200 mg',ci:'Gatos: neurotoxicidad',f:'Plumb\'s 10th Ed.'},
+{n:'Clotrimazol',p:'Clotrimazol',c:'Antifúngico',dp:'Sol 1% otitis externa; intranasal (Aspergillus)',dg:'Sol 1% tópico',v:'Tópico, intranasal',pr:'Sol/crema 1%',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Miconazol',p:'Miconazol nitrato',c:'Antifúngico',dp:'Aplicar tópico 2-3 veces/día',dg:'Aplicar tópico 2-3 veces/día',v:'Tópico',pr:'Crema 2%; polvo; loción',ci:'',f:'Plumb\'s 10th Ed.'},
+{n:'Anfotericina B',p:'Anfotericina B desoxicolato',c:'Antifúngico',dp:'0.5 mg/kg IV en dextrosa 5% 3×/sem',dg:'0.25 mg/kg IV 3×/sem',v:'IV lento',pr:'Vial 50 mg liofilizado',ci:'Nefrotóxico — premedicación con suero y monitoreo renal',f:'Plumb\'s 10th Ed.'},
+{n:'Posaconazol',p:'Posaconazol',c:'Antifúngico',dp:'5 mg/kg VO c/12 h',dg:'No bien establecida',v:'VO',pr:'Sol oral 40 mg/ml; Comp 100 mg',ci:'',f:'Plumb\'s 10th Ed.'}
+];
+
+let vadTodos = [];
+let vadFiltroActual = 'Todos';
+let vadBusquedaActual = '';
+let vadIniciado = false;
+
+async function initVad() {
+  if (!vadIniciado) {
+    vadIniciado = true;
+    // Renderizar chips de categoría
+    const chips = VAD_CATS.map(c =>
+      `<button class="vad-chip${c==='Todos'?' active':''}" id="vadChip_${c.replace(/\s/g,'_')}" onclick="setVadCat('${escHtml(c)}')">${escHtml(c)}</button>`
+    ).join('');
+    document.getElementById('vadFiltros').innerHTML = chips;
+    // Cargar de Supabase o usar seed
+    await cargarVad();
+  } else {
+    renderVadLista();
+  }
+}
+
+async function cargarVad() {
+  document.getElementById('listaVad').innerHTML = '<div class="loader"><div class="spinner"></div></div>';
+  try {
+    let rows = await sb.select('cg_vademecum', 'activo=eq.true&order=nombre.asc') || [];
+    if (rows.length === 0) {
+      // Primera vez: sembrar datos
+      await sembrarVad();
+      rows = await sb.select('cg_vademecum', 'activo=eq.true&order=nombre.asc') || [];
+    }
+    vadTodos = rows;
+  } catch(e) {
+    vadTodos = VAD_SEED.map(d => ({...d, id: null, nombre:d.n, principio_activo:d.p, categoria:d.c,
+      dosis_perro:d.dp, dosis_gato:d.dg, via_admin:d.v, presentacion:d.pr, contraindicaciones:d.ci, fuente:d.f, activo:true}));
+  }
+  renderVadLista();
+}
+
+async function sembrarVad() {
+  const batch = VAD_SEED.map(d => ({
+    nombre: d.n, principio_activo: d.p, categoria: d.c,
+    dosis_perro: d.dp, dosis_gato: d.dg, via_admin: d.v,
+    presentacion: d.pr, contraindicaciones: d.ci, fuente: d.f, activo: true
+  }));
+  // Insertar en lotes de 20
+  for (let i=0; i<batch.length; i+=20) {
+    try { await sb.insert('cg_vademecum', batch.slice(i, i+20)); } catch(e) {}
+  }
+}
+
+function setVadCat(cat) {
+  vadFiltroActual = cat;
+  document.querySelectorAll('.vad-chip').forEach(b => b.classList.remove('active'));
+  const id = 'vadChip_' + cat.replace(/\s/g,'_');
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+  renderVadLista();
+}
+
+function filtrarVad() {
+  vadBusquedaActual = (document.getElementById('vadSearch').value || '').toLowerCase();
+  renderVadLista();
+}
+
+function renderVadLista() {
+  const q = vadBusquedaActual;
+  const cat = vadFiltroActual;
+  const filtered = vadTodos.filter(d => {
+    const matchCat = cat === 'Todos' || d.categoria === cat;
+    const matchQ = !q ||
+      (d.nombre||'').toLowerCase().includes(q) ||
+      (d.principio_activo||'').toLowerCase().includes(q);
+    return matchCat && matchQ;
+  });
+  if (filtered.length === 0) {
+    document.getElementById('listaVad').innerHTML = '<div class="vad-empty">Sin resultados</div>';
+    return;
+  }
+  const canEdit = isAdmin;
+  let html3 = '';
+  for (const d of filtered) {
+    const ci = d.contraindicaciones ? `<div style="color:#e53935;font-size:0.75rem;margin-top:4px">⚠️ ${escHtml(d.contraindicaciones)}</div>` : '';
+    const editBtn = canEdit && d.id ? `<button class="btn btn-secondary" style="font-size:0.72rem;padding:4px 10px;margin-top:8px" onclick="editarDroga('${d.id}')">✏️ Editar</button>` : '';
+    html3 += `<div class="vad-item">
+      <div class="vad-item-top">
+        <div>
+          <div class="vad-nombre">${escHtml(d.nombre)}</div>
+          <div class="vad-principio">${escHtml(d.principio_activo)}</div>
+        </div>
+        <span class="vad-cat">${escHtml(d.categoria)}</span>
+      </div>
+      <div class="vad-dosis">🐶 <b>Perro:</b> ${escHtml(d.dosis_perro)}<br>🐱 <b>Gato:</b> ${escHtml(d.dosis_gato)}</div>
+      <div class="vad-dosis">💊 <b>Vía:</b> ${escHtml(d.via_admin)} &nbsp;|&nbsp; <b>Presentación:</b> ${escHtml(d.presentacion)}</div>
+      ${ci}
+      <div class="vad-fuente">Fuente: ${escHtml(d.fuente)}</div>
+      ${editBtn}
+    </div>`;
+  }
+  if (canEdit) {
+    html3 += `<button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="nuevaDroga()">➕ Nueva droga</button>`;
+  }
+  document.getElementById('listaVad').innerHTML = html3;
+}
+
+function nuevaDroga() {
+  const cats = VAD_CATS.filter(c=>c!=='Todos').map(c=>`<option>${escHtml(c)}</option>`).join('');
+  abrirModal(`
+    <h3 style="margin-bottom:14px">Nueva droga</h3>
+    <div id="vadFormCont">
+      ${vadFormHtml(null, cats)}
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-primary" style="flex:1" onclick="guardarDroga(null)">Guardar</button>
+      <button class="btn btn-secondary" style="flex:1" onclick="cerrarModal()">Cancelar</button>
+    </div>
+  `);
+}
+
+async function editarDroga(id) {
+  const rows = await sb.select('cg_vademecum', `id=eq.${id}`);
+  const d = rows?.[0];
+  if (!d) return;
+  const cats = VAD_CATS.filter(c=>c!=='Todos').map(c=>`<option${d.categoria===c?' selected':''}>${escHtml(c)}</option>`).join('');
+  abrirModal(`
+    <h3 style="margin-bottom:14px">Editar droga</h3>
+    <div id="vadFormCont">
+      ${vadFormHtml(d, cats)}
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-primary" style="flex:1" onclick="guardarDroga('${id}')">Guardar</button>
+      <button class="btn btn-danger" style="flex:1" onclick="eliminarDroga('${id}')">Eliminar</button>
+      <button class="btn btn-secondary" style="flex:1" onclick="cerrarModal()">Cancelar</button>
+    </div>
+  `);
+}
+
+function vadFormHtml(d, catsOpts) {
+  const v = k => d ? escHtml(d[k]||'') : '';
+  return `
+    <div class="field"><label>Nombre comercial</label><input id="vf_nombre" value="${v('nombre')}"></div>
+    <div class="field"><label>Principio activo</label><input id="vf_principio" value="${v('principio_activo')}"></div>
+    <div class="field"><label>Categoría</label><select id="vf_cat">${catsOpts}</select></div>
+    <div class="field"><label>Dosis perro</label><input id="vf_dp" value="${v('dosis_perro')}"></div>
+    <div class="field"><label>Dosis gato</label><input id="vf_dg" value="${v('dosis_gato')}"></div>
+    <div class="field"><label>Vía</label><input id="vf_via" value="${v('via_admin')}"></div>
+    <div class="field"><label>Presentación</label><input id="vf_pres" value="${v('presentacion')}"></div>
+    <div class="field"><label>Contraindicaciones</label><input id="vf_ci" value="${v('contraindicaciones')}"></div>
+    <div class="field"><label>Fuente</label><input id="vf_fuente" value="${v('fuente')}"></div>
+  `;
+}
+
+async function guardarDroga(id) {
+  const data = {
+    nombre: document.getElementById('vf_nombre').value.trim(),
+    principio_activo: document.getElementById('vf_principio').value.trim(),
+    categoria: document.getElementById('vf_cat').value,
+    dosis_perro: document.getElementById('vf_dp').value.trim(),
+    dosis_gato: document.getElementById('vf_dg').value.trim(),
+    via_admin: document.getElementById('vf_via').value.trim(),
+    presentacion: document.getElementById('vf_pres').value.trim(),
+    contraindicaciones: document.getElementById('vf_ci').value.trim(),
+    fuente: document.getElementById('vf_fuente').value.trim(),
+    activo: true
+  };
+  if (!data.nombre) { showToast('El nombre es obligatorio', 'error'); return; }
+  try {
+    if (id) {
+      await sb.update('cg_vademecum', `id=eq.${id}`, data);
+    } else {
+      await sb.insert('cg_vademecum', data);
+    }
+    cerrarModal();
+    showToast('Droga guardada ✓', 'ok');
+    vadIniciado = false;
+    await cargarVad();
+  } catch(e) { showToast('Error al guardar', 'error'); }
+}
+
+async function eliminarDroga(id) {
+  if (!confirm('¿Eliminar esta droga del vademécum?')) return;
+  try {
+    await sb.update('cg_vademecum', `id=eq.${id}`, { activo: false });
+    cerrarModal();
+    showToast('Droga eliminada', 'ok');
+    vadIniciado = false;
+    await cargarVad();
+  } catch(e) { showToast('Error al eliminar', 'error'); }
+}
+
 </script>
 
 <!--
@@ -1650,6 +2143,49 @@ CREATE POLICY "anon full access cg_vets"      ON cg_vets      FOR ALL USING (tru
 CREATE POLICY "anon full access cg_pacientes" ON cg_pacientes FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "anon full access cg_fichas"    ON cg_fichas    FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "anon full access cg_turnos"    ON cg_turnos    FOR ALL USING (true) WITH CHECK (true);
+
+-- Vademécum
+CREATE TABLE IF NOT EXISTS cg_vademecum (
+  id               UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  nombre           TEXT NOT NULL,
+  principio_activo TEXT,
+  categoria        TEXT,
+  dosis_perro      TEXT,
+  dosis_gato       TEXT,
+  via_admin        TEXT,
+  presentacion     TEXT,
+  contraindicaciones TEXT,
+  fuente           TEXT,
+  activo           BOOLEAN DEFAULT true,
+  created_at       TIMESTAMPTZ DEFAULT now(),
+  updated_at       TIMESTAMPTZ DEFAULT now()
+);
+
+-- Archivos adjuntos por ficha
+CREATE TABLE IF NOT EXISTS cg_archivos (
+  id           UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  ficha_id     UUID REFERENCES cg_fichas(id) ON DELETE CASCADE,
+  nombre       TEXT,
+  mime_type    TEXT,
+  storage_path TEXT,
+  url          TEXT,
+  tamanio      BIGINT,
+  created_by   TEXT,
+  created_at   TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE cg_vademecum ENABLE ROW LEVEL SECURITY;
+ALTER TABLE cg_archivos  ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "anon full access cg_vademecum" ON cg_vademecum FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "anon full access cg_archivos"  ON cg_archivos  FOR ALL USING (true) WITH CHECK (true);
+
+-- Storage bucket (crear en Supabase Dashboard → Storage → New bucket → nombre: cg-archivos → Public: ON)
+-- Luego ejecutar para políticas de storage:
+INSERT INTO storage.buckets (id, name, public) VALUES ('cg-archivos', 'cg-archivos', true)
+  ON CONFLICT DO NOTHING;
+CREATE POLICY "anon upload cg-archivos"  ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'cg-archivos');
+CREATE POLICY "anon select cg-archivos"  ON storage.objects FOR SELECT USING (bucket_id = 'cg-archivos');
+CREATE POLICY "anon delete cg-archivos"  ON storage.objects FOR DELETE USING (bucket_id = 'cg-archivos');
 
 =================================================================
 -->
