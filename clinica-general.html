@@ -1082,7 +1082,7 @@ async function subirArchivo(event, fichaId, containerId) {
   const MB = file.size / 1024 / 1024;
   const isVid = file.type.startsWith('video/');
   const maxMB = isVid ? 30 : 10;
-  if (MB > maxMB) { showToast(\`El archivo es demasiado grande (máx \${maxMB}MB)\`, 'error'); return; }
+  if (MB > maxMB) { showToast(`El archivo es demasiado grande (máx \${maxMB}MB)`, 'error'); return; }
   // Para videos, verificar duración ≤ 10 s
   if (isVid) {
     const ok = await new Promise(res => {
@@ -1095,19 +1095,19 @@ async function subirArchivo(event, fichaId, containerId) {
     if (!ok) { showToast('El video debe ser de máximo 10 segundos', 'error'); return; }
   }
   // Mostrar progreso
-  const progEl = document.getElementById(\`upProg_\${fichaId}\`);
-  const barEl  = document.getElementById(\`upProgBar_\${fichaId}\`);
+  const progEl = document.getElementById(`upProg_\${fichaId}`);
+  const barEl  = document.getElementById(`upProgBar_\${fichaId}`);
   if (progEl) { progEl.style.display = 'block'; barEl.style.width = '10%'; }
   try {
     const ext  = file.name.split('.').pop();
-    const path = \`\${fichaId}/\${Date.now()}_\${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}\`;
-    const uploadUrl = \`\${SUPABASE_URL}/storage/v1/object/cg-archivos/\${path}\`;
+    const path = `\${fichaId}/\${Date.now()}_\${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
+    const uploadUrl = `\${SUPABASE_URL}/storage/v1/object/cg-archivos/\${path}`;
     if (barEl) barEl.style.width = '40%';
     const upRes = await fetch(uploadUrl, {
       method: 'POST',
       headers: {
         'apikey': SUPABASE_KEY,
-        'Authorization': \`Bearer \${SUPABASE_KEY}\`,
+        'Authorization': `Bearer \${SUPABASE_KEY}`,
         'Content-Type': file.type || 'application/octet-stream',
         'x-upsert': 'true'
       },
@@ -1115,10 +1115,10 @@ async function subirArchivo(event, fichaId, containerId) {
     });
     if (!upRes.ok) {
       const err = await upRes.text();
-      throw new Error(\`Storage: \${err}\`);
+      throw new Error(`Storage: \${err}`);
     }
     if (barEl) barEl.style.width = '80%';
-    const pubUrl = \`\${SUPABASE_URL}/storage/v1/object/public/cg-archivos/\${path}\`;
+    const pubUrl = `\${SUPABASE_URL}/storage/v1/object/public/cg-archivos/\${path}`;
     await sb.insert('cg_archivos', {
       ficha_id:   fichaId,
       nombre:     file.name,
@@ -1143,12 +1143,12 @@ async function subirArchivo(event, fichaId, containerId) {
 async function eliminarArchivo(archivoId, fichaId, containerId, editable) {
   if (!confirm('¿Eliminar este archivo?')) return;
   try {
-    const rows = await sb.select('cg_archivos', \`id=eq.\${archivoId}\`);
+    const rows = await sb.select('cg_archivos', `id=eq.\${archivoId}`);
     if (rows && rows[0]?.storage_path) {
-      const delUrl = \`\${SUPABASE_URL}/storage/v1/object/cg-archivos/\${rows[0].storage_path}\`;
-      await fetch(delUrl, { method:'DELETE', headers:{ 'apikey': SUPABASE_KEY, 'Authorization': \`Bearer \${SUPABASE_KEY}\` } });
+      const delUrl = `\${SUPABASE_URL}/storage/v1/object/cg-archivos/\${rows[0].storage_path}`;
+      await fetch(delUrl, { method:'DELETE', headers:{ 'apikey': SUPABASE_KEY, 'Authorization': `Bearer \${SUPABASE_KEY}` } });
     }
-    await sb.delete('cg_archivos', \`id=eq.\${archivoId}\`);
+    await sb.delete('cg_archivos', `id=eq.\${archivoId}`);
     showToast('Archivo eliminado', 'ok');
     await renderArchivos(fichaId, containerId, editable);
   } catch(e) { showToast('Error al eliminar', 'error'); }
