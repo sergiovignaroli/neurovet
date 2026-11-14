@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -1571,8 +1572,8 @@ v>
 <div id="toast"></div>
 <script>
 // ═══════════════════ DATA ═══════════════════
-let records=JSON.parse(localStorage.getItem('nv4_rec')||'[]');
-let turnos=JSON.parse(localStorage.getItem('nv4_tur')||'[]');
+var records=JSON.parse(localStorage.getItem('nv4_rec')||'[]');
+var turnos=JSON.parse(localStorage.getItem('nv4_tur')||'[]');
 let savedRazas=JSON.parse(localStorage.getItem('nv4_raz')||'{"Canino":["Labrador Retriever","Golden Retriever","Pastor Alemán","Bulldog Francés","Caniche","Beagle","Yorkshire Terrier","Boxer","Rottweiler","Dachshund","Chihuahua","Schnauzer","Maltés","Shar Pei","Border Collie","Dobermann","Gran Danés","Cocker Spaniel","Husky Siberiano","Bichón Frisé","Basset Hound","Pug","Dálmata","Samoyedo","Akita","Braco"],"Felino":["Doméstico Europeo","Siamés","Persa","Maine Coon","Bengalí","Ragdoll","Abisinio","British Shorthair","Angora","Sphynx","Scottish Fold","Devon Rex"]}');
 let headerConfig=JSON.parse(localStorage.getItem('nv4_hdr')||JSON.stringify({bg:'#0d9488',txt:'#ffffff',title:'Dr. Sergio Vignaroli',sub:'Neurología Veterinaria',cred:'Mat. Prof. 1743',ig:'@veterinariosergiovignaroli',tel:'+5493413340156',logoB64:'',ls:'70px',lp:'left'}));
 let currentSpec='neurologia',deleteTarget=null,agFilter='all',specFilter='all';
@@ -2065,7 +2066,7 @@ async function saveRecord(){
   const editId=document.getElementById('editing-id').value;
   const id=editId||Date.now().toString();
   saveRaza(gv('f-raza'),gv('f-especie'));
-  const r={id,...collectRec()};
+  const r={id,...collectRec(),_ts:Date.now()};
   if(editId){const idx=records.findIndex(x=>x.id===editId);if(idx>=0)records[idx]=r;}else records.unshift(r);
   localStorage.setItem('nv4_rec',JSON.stringify(records));
   document.getElementById('editing-id').value='';
@@ -2075,8 +2076,82 @@ async function saveRecord(){
   saveToCloud(r);
 }
 
+// ── Popup resumen rápido al abrir una ficha existente ───────────────
+function showResumenPaciente(r){
+  if(!r) return;
+  const spec = r.espMedica||'neurologia';
+  const dx   = r.dxDef || r.dxPres
+    || (spec==='cardiologia'?r.cDxP:'')
+    || (spec==='dermatologia'?r.dDx:'') || '';
+  const trat = spec==='neurologia'?r.trat
+    :(spec==='cardiologia'?r.cTrat
+    :(spec==='dermatologia'?r.dTrat
+    :r.cdsTratFarm)) || '';
+  const estudios = spec==='neurologia'?r.metodos
+    :(spec==='cardiologia'?r.cEco
+    :(spec==='dermatologia'?r.dMet:'')) || '';
+  if(!dx&&!trat&&!estudios) return;  // sin datos clínicos — no mostrar
+
+  // Buscar el registro más reciente del mismo paciente (el popup lo usa como contexto)
+  const allPac = (records||[]).filter(x=>x.paciente&&r.paciente&&x.paciente===r.paciente).sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
+  const latest = allPac[0]||r;
+  const latestDx   = latest.dxDef||latest.dxPres||(latest.espMedica==='cardiologia'?latest.cDxP:'')|| '';
+  const latestTrat = latest.espMedica==='neurologia'?latest.trat:(latest.espMedica==='cardiologia'?latest.cTrat:(latest.espMedica==='dermatologia'?latest.dTrat:latest.cdsTratFarm))||'';
+  const latestEst  = latest.espMedica==='neurologia'?latest.metodos:(latest.espMedica==='cardiologia'?latest.cEco:(latest.espMedica==='dermatologia'?latest.dMet:''))||'';
+  if(!latestDx&&!latestTrat&&!latestEst) return;
+
+  // Remover popup anterior si existe
+  const old=document.getElementById('nv-resumen-popup');if(old)old.remove();
+
+  const rows=[];
+  if(latestDx)   rows.push({icon:'📋',label:'Diagnóstico',val:latestDx});
+  if(latestTrat) rows.push({icon:'💊',label:'Tratamiento actual',val:latestTrat});
+  if(latestEst)  rows.push({icon:'🔬',label:'Estudios',val:latestEst});
+
+  const escH=s=>s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'):'';
+  const header=`${escH(r.paciente||'Paciente')}`+(r.especie?` <span style="font-size:.8rem;font-weight:400;opacity:.7">· ${escH(r.especie)}${r.raza?' '+escH(r.raza):''}${r.edad?' · '+escH(r.edad):''}</span>`:'');
+
+  const rowsHTML=rows.map(row=>`
+    <div style="display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid rgba(0,0,0,.06);">
+      <span style="font-size:1.3rem;line-height:1;">${row.icon}</span>
+      <div style="min-width:0;">
+        <div style="font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;opacity:.55;margin-bottom:2px;">${row.label}</div>
+        <div style="font-size:.85rem;line-height:1.4;white-space:pre-wrap;">${escH(row.val)}</div>
+      </div>
+    </div>`).join('');
+
+  const isLatest=(latest.id===r.id);
+  const footerNote=(!isLatest&&allPac.length>1)?`<div style="font-size:.7rem;opacity:.5;margin-top:6px;">Datos del último registro (${escH(latest.fecha||'')}) — hay ${allPac.length} fichas en total</div>`:'';
+
+  const popup=document.createElement('div');
+  popup.id='nv-resumen-popup';
+  popup.setAttribute('role','dialog');
+  popup.setAttribute('aria-label','Resumen del paciente');
+  popup.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;z-index:9900;display:flex;align-items:center;justify-content:center;animation:fadeIn .18s ease;';
+  popup.innerHTML=`
+    <div onclick="event.stopPropagation()" style="
+      background:var(--surface,#fff);border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,.18);
+      width:min(94vw,420px);max-height:85vh;overflow:auto;padding:22px 22px 18px;
+      position:relative;">
+      <button onclick="const p=document.getElementById('nv-resumen-popup');if(p)p.remove();"
+        style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:1.3rem;cursor:pointer;opacity:.5;line-height:1;padding:2px 6px;" aria-label="Cerrar">×</button>
+      <div style="font-size:1rem;font-weight:700;padding-right:28px;margin-bottom:12px;">${header}</div>
+      <div style="margin:0 -4px;">${rowsHTML}</div>
+      ${footerNote}
+      <button onclick="const p=document.getElementById('nv-resumen-popup');if(p)p.remove();"
+        style="margin-top:14px;width:100%;padding:9px;background:var(--teal,#0d9488);color:#fff;border:none;border-radius:9px;font-size:.88rem;font-weight:600;cursor:pointer;letter-spacing:.02em;">
+        ✏️ Continuar con la ficha
+      </button>
+    </div>`;
+  popup.addEventListener('click',()=>popup.remove());
+  document.body.appendChild(popup);
+  // Auto-cerrar en 12 segundos si el usuario no interactuó
+  popup._timer=setTimeout(()=>{if(document.getElementById('nv-resumen-popup'))popup.remove();},12000);
+}
+
 function loadRecord(id){
   const r=records.find(x=>x.id===id);if(!r)return;
+  showResumenPaciente(r);
   document.getElementById('editing-id').value=id;
   document.getElementById('nc-banner').style.display='none';
   const s=r.espMedica||'neurologia';currentSpec=s;
@@ -3518,7 +3593,12 @@ function startRealtimeListener(){
         records.forEach(r=>{map[r.id]=r;});
         cloudRecs.forEach(cr=>{
           if(cr.id===editingId){map[cr.id]=map[cr.id]||cr;}
-          else{map[cr.id]=cr;}
+          else{
+            // Preferir la versión más reciente según _ts (timestamp de último guardado)
+            const local=map[cr.id];
+            if(!local||(cr._ts||0)>=(local._ts||0)){map[cr.id]=cr;}
+            // Si local es más nuevo (_ts mayor), mantener local — protege cambios offline
+          }
         });
         records=Object.values(map).sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
         localStorage.setItem('nv4_rec',JSON.stringify(records));
@@ -6707,6 +6787,7 @@ function agregarEstudio(texto){
   var _panelOpen = false;
   var _crisisData= [];
   var _prevNuevas= -1;  // -1 = aún no se hizo el primer poll
+  var _sbPollFailed = false;  // para no repetir toast de error en cada poll
 
   function loadSrc(url){
     return new Promise(function(res,rej){
@@ -6932,7 +7013,7 @@ function agregarEstudio(texto){
         anamnesis:anamnesis,
         trat:'',dxDef:'',pron:'',prox:'',obsFin:''
       };
-      window.records=window.records||[];
+      if(!Array.isArray(window.records)) return; // seguridad: no tocar si records no está inicializado
       window.records.unshift(newRec);
       localStorage.setItem('nv4_rec',JSON.stringify(window.records));
       try{if(typeof saveToCloud==='function')saveToCloud(newRec);}catch(e){}
@@ -6966,7 +7047,17 @@ function agregarEstudio(texto){
       if(_prevNuevas >= 0 && nuevas > _prevNuevas) showNuevaCrisisAlert(nuevas - _prevNuevas);
       _prevNuevas = nuevas;
       if(_panelOpen) renderCrisisPanel();
-    }catch(e){ console.log('pollSeizures:', e.message); }
+      _sbPollFailed=false;  // éxito — resetear bandera
+    }catch(e){
+      console.log('pollSeizures:', e.message);
+      if(!_sbPollFailed){
+        _sbPollFailed=true;
+        // Actualizar badge con ícono de error (no spam en cada poll)
+        var cnt=document.getElementById('nv-crisis-count');
+        if(cnt){ cnt.textContent='!'; cnt.style.display='inline'; cnt.style.background='#f59e0b'; }
+        console.warn('Crisis Supabase error — verificá RLS y que la tabla seizures exista. Detalle:',e.message);
+      }
+    }
   }
 
   // ── Globales ────────────────────────────────────────────────
@@ -7066,6 +7157,7 @@ var _bibFile=null;       // {tipo, nombre, tamano, mimeType, dataUrl} or {existi
 var _bibUrlType='link';
 var _bibViewItem=null;   // item shown in viewer
 var _bibSBClient=null;
+var _bibSBError=null;  // último error de Supabase, para mostrarlo en la UI
 var _BIB_SB_URL='https://cnbovfeifekyyyyaktbl.supabase.co';
 var _BIB_SB_KEY='sb_publishable_x0ozgxBWKOlTFCKxHtfWVQ_2M1p-fC4';
 
@@ -7114,9 +7206,18 @@ function bibGetAll(){
   return _bibSB().then(function(sb){
     return sb.from('biblioteca_items').select('*').eq('user_label','sergio').order('fecha_ms',{ascending:false});
   }).then(function(res){
-    if(res.error){ console.error('bibGetAll:',res.error); return []; }
+    if(res.error){
+      _bibSBError=res.error.message||'Error de conexión con Supabase';
+      console.error('bibGetAll:',res.error);
+      return [];
+    }
+    _bibSBError=null;
     return (res.data||[]).map(_sbToItem);
-  }).catch(function(e){ console.error('bibGetAll catch:',e); return []; });
+  }).catch(function(e){
+    _bibSBError=e.message||'No se pudo conectar con la base de datos';
+    console.error('bibGetAll catch:',e);
+    return [];
+  });
 }
 
 function bibSave(item){
@@ -7201,9 +7302,20 @@ window.renderBiblioteca=async function(){
   });
 
   if(!items.length){
-    grid.innerHTML='<div class="bib-empty"><div style="font-size:3rem;margin-bottom:12px;">📚</div>'
-      +'<div style="font-size:.95rem;font-weight:600;margin-bottom:6px;">'+(q||ft||fc?'Sin resultados':'Tu biblioteca está vacía')+'</div>'
-      +'<div style="font-size:.8rem;">'+(q||ft||fc?'Probá con otros filtros o borrá la búsqueda':'Hacé clic en <strong>+ Agregar recurso</strong> para empezar')+'</div></div>';
+    if(_bibSBError&&!q&&!ft&&!fc){
+      grid.innerHTML='<div class="bib-empty">'
+        +'<div style="font-size:2.2rem;margin-bottom:10px;">⚠️</div>'
+        +'<div style="font-size:.95rem;font-weight:600;margin-bottom:6px;color:#dc2626;">Error al conectar con Supabase</div>'
+        +'<div style="font-size:.8rem;color:#555;margin-bottom:12px;">'+_bibSBError+'</div>'
+        +'<div style="font-size:.75rem;color:#888;">Verificá las reglas de acceso (RLS) en el dashboard de Supabase<br>'
+        +'o que las tablas <code>biblioteca_items</code> existan y estén habilitadas.</div>'
+        +'<button onclick="window.renderBiblioteca()" style="margin-top:14px;padding:7px 16px;border-radius:7px;background:var(--teal);color:#fff;border:none;cursor:pointer;font-size:.82rem;">🔄 Reintentar</button>'
+        +'</div>';
+    } else {
+      grid.innerHTML='<div class="bib-empty"><div style="font-size:3rem;margin-bottom:12px;">📚</div>'
+        +'<div style="font-size:.95rem;font-weight:600;margin-bottom:6px;">'+(q||ft||fc?'Sin resultados':'Tu biblioteca está vacía')+'</div>'
+        +'<div style="font-size:.8rem;">'+(q||ft||fc?'Probá con otros filtros o borrá la búsqueda':'Hacé clic en <strong>+ Agregar recurso</strong> para empezar')+'</div></div>';
+    }
     return;
   }
 
