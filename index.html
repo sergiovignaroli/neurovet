@@ -1109,6 +1109,31 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         </div>
       </div>
 
+      <!-- IA / API Key -->
+      <div class="card" style="margin-bottom:14px;border-left:4px solid #8b5cf6;">
+        <div class="card-head">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:1.4rem;">🤖</span>
+            <div>
+              <h3 style="margin:0;">IA — Claude (Anthropic)</h3>
+              <div style="font-size:.74rem;color:var(--text-soft);">Clave API para protocolos y mejora de redacción con IA</div>
+            </div>
+          </div>
+          <div id="ai-sync-status" style="font-size:.8rem;color:var(--text-soft);font-weight:600;">⚠️ Sin configurar</div>
+        </div>
+        <div style="padding:12px 14px;border-top:1px solid var(--border-light);">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <input type="password" id="ai-sync-key-input" placeholder="sk-ant-api03-..."
+              style="flex:1;min-width:200px;padding:7px 10px;border:1.5px solid var(--border);border-radius:7px;font-size:.8rem;font-family:inherit;outline:none;background:var(--surface);color:var(--text);">
+            <button onclick="guardarAIKeySync()" class="btn btn-primary btn-sm">Guardar</button>
+            <button onclick="borrarAIKeySync()" class="btn btn-outline btn-sm" id="ai-sync-clear-btn" style="display:none;">Eliminar</button>
+          </div>
+          <div style="margin-top:7px;font-size:.75rem;color:var(--text-soft);">
+            Obtenela en <a href="https://console.anthropic.com" target="_blank" style="color:var(--teal);">console.anthropic.com</a> — plan gratuito disponible
+          </div>
+        </div>
+      </div>
+
       <!-- Firebase setup guide -->
       <div class="card"><div class="card-head"><h3>🚀 Cómo configurar Firebase (gratis)</h3></div><div class="card-body">
         <div class="firebase-step"><div class="step-num">1</div><div class="step-content"><h4>Crear proyecto Firebase</h4><p>Ir a <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a> → "Crear proyecto" → Elegir nombre → Crear</p></div></div>
@@ -1672,6 +1697,7 @@ function _doNav(v){
   if(v==='estadisticas')renderStats();if(v==='backup')updateBackupInfo();
   if(v==='protocolos')renderProtocolos();
   if(v==='biblioteca')renderBiblioteca();
+  if(v==='sync')refreshAISyncStatus();
   document.getElementById('sidebar').classList.remove('open');
 }
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');}
@@ -4227,7 +4253,8 @@ function updateAIProtoPrompt(){
 async function generarProtocoloClaude(){
   const apiKey = localStorage.getItem('nv_apikey') || '';
   if(!apiKey){
-    showToast('Configurá tu clave API primero (ícono ☁️ → Sincronización)','error');
+    showToast('Configurá tu clave API en Sincronización → sección IA','error');
+    navigate('sync');
     return;
   }
   const tipo = document.getElementById('ai-proto-tipo')?.value || '';
@@ -4584,6 +4611,32 @@ function guardarAIKey() {
   localStorage.setItem('nv_apikey', k);
   document.getElementById('ai-key-box').style.display = 'none';
   addAIMsg('bot', '✅ Clave guardada. Ya podés consultarme.', 'claude-style');
+  refreshAISyncStatus();
+}
+
+function refreshAISyncStatus(){
+  var k = localStorage.getItem('nv_apikey') || '';
+  var st = document.getElementById('ai-sync-status');
+  var clr = document.getElementById('ai-sync-clear-btn');
+  if(st){ st.textContent = k ? '✅ Configurada' : '⚠️ Sin configurar'; st.style.color = k ? '#16a34a' : 'var(--text-soft)'; }
+  if(clr) clr.style.display = k ? 'inline-flex' : 'none';
+}
+
+function guardarAIKeySync(){
+  var k = document.getElementById('ai-sync-key-input').value.trim();
+  if(!k){ showToast('Ingresá la clave primero','error'); return; }
+  localStorage.setItem('nv_apikey', k);
+  document.getElementById('ai-sync-key-input').value = '';
+  refreshAISyncStatus();
+  if(typeof checkAIKey === 'function') checkAIKey();
+  showToast('✅ Clave API guardada','success');
+}
+
+function borrarAIKeySync(){
+  localStorage.removeItem('nv_apikey');
+  refreshAISyncStatus();
+  if(typeof checkAIKey === 'function') checkAIKey();
+  showToast('Clave API eliminada','info');
 }
 
 function addAIMsg(role, text, styleClass) {
@@ -8033,7 +8086,7 @@ window.abrirModalBibDesdeConsulta=function(){
     }
     var apiKey = localStorage.getItem('nv_apikey') || '';
     if(!apiKey){
-      if(window.showToast) showToast('Configurá tu clave API (☁️ → Sincronización)','error');
+      if(window.showToast){ showToast('Configurá tu clave API en Sincronización → sección IA','error'); navigate('sync'); }
       return;
     }
     var origHTML = btn.innerHTML;
@@ -8052,7 +8105,7 @@ window.abrirModalBibDesdeConsulta=function(){
           'anthropic-dangerous-direct-browser-access':'true'
         },
         body: JSON.stringify({
-          model:'claude-haiku-4-5',
+          model:'claude-haiku-4-5-20251001',
           max_tokens:1000,
           system:'Sos NeuroVet AI, asistente de redacción clínica veterinaria del Dr. Sergio Vignaroli, Rosario, Argentina. Mejorás textos clínicos: corregís ortografía, mejorás sintaxis, usás terminología técnica veterinaria correcta. REGLA FUNDAMENTAL: no agregás ni eliminás datos clínicos. Respondés ÚNICAMENTE con el texto mejorado. Sin explicaciones, sin comillas, sin preámbulo.',
           messages:[{
@@ -8137,11 +8190,32 @@ window.abrirModalBibDesdeConsulta=function(){
     setTimeout(scanAll, 0);
   }
 
-  /* Segunda pasada al abrir modales (los textareas ya están en el DOM,
-     pero el toolbar se inserta solo si no se insertó antes) */
+  /* Segunda pasada al abrir modales/fichas por click */
   document.addEventListener('click', function(){
-    setTimeout(scanAll, 250);
+    setTimeout(scanAll, 150);
+    setTimeout(scanAll, 500);   /* segunda pasada para renders lentos */
+    setTimeout(scanAll, 1200);  /* tercera pasada para fichas muy pesadas */
   }, true);
+
+  /* MutationObserver: captura textareas inyectados dinámicamente sin click */
+  (function(){
+    if(!window.MutationObserver) return;
+    var _obs = new MutationObserver(function(mutations){
+      var found = false;
+      for(var i=0;i<mutations.length;i++){
+        var added = mutations[i].addedNodes;
+        for(var j=0;j<added.length;j++){
+          var n = added[j];
+          if(!n || n.nodeType !== 1) continue;
+          if(n.tagName === 'TEXTAREA'){ found = true; break; }
+          if(n.querySelectorAll && n.querySelectorAll('textarea[id]').length){ found = true; break; }
+        }
+        if(found) break;
+      }
+      if(found) setTimeout(scanAll, 50);
+    });
+    _obs.observe(document.body, { childList: true, subtree: true });
+  })();
 
 })();
 </script>
