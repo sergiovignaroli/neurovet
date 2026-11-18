@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -47,6 +48,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .btn-warning{background:#fef3c7;color:#92400e;border:none;}
 .btn-sm{padding:5px 10px;font-size:.76rem;}
 .btn-xs{padding:3px 7px;font-size:.71rem;}
+@media print{.no-print{display:none!important;}}
 #menu-toggle{display:none;background:none;border:none;cursor:pointer;color:var(--teal);}
 .tb-title{font-weight:600;font-size:.95rem;color:var(--text);flex:1;}
 .view{display:none;}.view.active{display:block;}
@@ -958,6 +960,25 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <button class="btn btn-outline" onclick="printRecord()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Imprimir</button>
         <button class="btn btn-accent" onclick="exportPDF()">PDF</button>
         <button class="btn btn-outline" onclick="clearForm()">Limpiar</button>
+      </div>
+
+      <!-- IA PRIVADA — solo visible para Sergio, NO aparece en PDF/impresión -->
+      <div id="nv-ai-ficha" class="no-print" style="margin-top:20px;border-top:2px dashed #bae6fd;padding-top:16px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
+          <div style="font-weight:600;font-size:.87rem;color:var(--teal);display:flex;align-items:center;gap:6px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:17px;height:17px;flex-shrink:0;"><path d="M12 2a10 10 0 0 1 10 10c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2z"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            Análisis IA clínica — Solo visible para vos
+          </div>
+          <span style="font-size:.7rem;color:#6b7280;background:#f0f9ff;border:1px solid #bae6fd;border-radius:9px;padding:1px 8px;white-space:nowrap;">No aparece en PDF ni impresión</span>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+          <button id="nv-ai-ficha-btn" class="btn btn-outline btn-sm" onclick="nvAIFichaAnalizar()" style="display:flex;align-items:center;gap:5px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            Analizar caso con IA clínica
+          </button>
+          <span style="font-size:.72rem;color:#9ca3af;">Lee el historial completo del paciente · Citas científicas incluidas</span>
+        </div>
+        <div id="nv-ai-ficha-out" style="display:none;margin-top:12px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:14px 16px;font-size:.82rem;line-height:1.7;color:#0c4a6e;white-space:pre-wrap;word-break:break-word;max-height:600px;overflow-y:auto;"></div>
       </div>
     </div><!-- /view-nueva-ficha -->
 
@@ -2084,6 +2105,105 @@ function deleteFileFromStorage(id){ return eliminarArchivoFirestore(id); }
 
 // ═══════════════════════════════════════════════
 // CLEAR FORM — agregar reset de archivos y CDS
+
+// ── IA PRIVADA AL FINAL DE CONSULTA ─────────────────────────
+async function nvAIFichaAnalizar(){
+  var apiKey = localStorage.getItem('nv_apikey') || '';
+  if(!apiKey){
+    showToast('Configurá la clave API de Claude en Sincronización primero','error');
+    return;
+  }
+  var btn = document.getElementById('nv-ai-ficha-btn');
+  var out = document.getElementById('nv-ai-ficha-out');
+  if(!out) return;
+  btn.disabled = true;
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;animation:spin 1s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Analizando...';
+  out.style.display = 'block';
+  out.textContent = 'Analizando el caso clínico con evidencia científica...';
+
+  // Recopilar datos del formulario actual
+  var pacNombre = (document.getElementById('f-paciente')||{}).value || '';
+  var especie   = (document.getElementById('f-especie')||{}).value  || '';
+  var raza      = (document.getElementById('f-raza')||{}).value     || '';
+  var edad      = (document.getElementById('f-edad')||{}).value     || '';
+  var sexo      = (document.getElementById('f-sexo')||{}).value     || '';
+  var peso      = (document.getElementById('f-peso')||{}).value     || '';
+  var owner     = (document.getElementById('f-owner')||{}).value    || '';
+  var motivo    = (document.getElementById('f-motivo')||{}).value   || '';
+  var anamnesis = (document.getElementById('f-anamnesis')||{}).value|| '';
+  var exFis     = (document.getElementById('f-ex-fis')||{}).value   || '';
+  var exNeu     = (document.getElementById('f-ex-neu')||{}).value   || '';
+  var dxDif     = (document.getElementById('f-dx-dif')||{}).value   || '';
+  var dxDef     = (document.getElementById('f-dx-def')||{}).value   || '';
+  var trat      = (document.getElementById('f-trat')||{}).value     || '';
+  var pron      = (document.getElementById('f-pron')||{}).value     || '';
+  var obsFin    = (document.getElementById('f-obs-fin')||{}).value  || '';
+  var editId    = (document.getElementById('editing-id')||{}).value || '';
+
+  // Historial completo del paciente (hasta 10 consultas previas)
+  var historial = '';
+  if(pacNombre && window.records){
+    var fichasPac = window.records.filter(function(r){
+      return r.paciente && r.paciente.toLowerCase()===pacNombre.toLowerCase() && r.id!==editId;
+    }).sort(function(a,b){ return (b.fecha||'').localeCompare(a.fecha||''); }).slice(0,10);
+    if(fichasPac.length){
+      historial = '\n\n--- HISTORIAL PREVIO ('+fichasPac.length+' consulta/s anterior/es) ---\n';
+      fichasPac.forEach(function(r,i){
+        historial += '\nConsulta '+(i+1)+' ('+r.fecha+'): '+(r.motivo||'—');
+        if(r.dxDef) historial += ' | Dx: '+r.dxDef;
+        if(r.trat)  historial += ' | Trat: '+r.trat.slice(0,120);
+        if(r.pron)  historial += ' | Pron: '+r.pron.slice(0,80);
+      });
+    }
+  }
+
+  var consultaActual = '--- CONSULTA ACTUAL ---\n'
+    +'Paciente: '+(pacNombre||'—')+' | Especie: '+(especie||'—')+' | Raza: '+(raza||'—')
+    +' | Edad: '+(edad||'—')+' | Sexo: '+(sexo||'—')+' | Peso: '+(peso||'—')+'\n'
+    +'Tutor/Propietario: '+(owner||'—')+'\n'
+    +(motivo   ?'Motivo: '   +motivo   +'\n':'')
+    +(anamnesis?'Anamnesis: '+anamnesis+'\n':'')
+    +(exFis    ?'Ex. físico: '+exFis   +'\n':'')
+    +(exNeu    ?'Ex. neurológico: '+exNeu+'\n':'')
+    +(dxDif    ?'Dx. diferenciales: '+dxDif+'\n':'')
+    +(dxDef    ?'Dx. definitivo: '+dxDef+'\n':'')
+    +(trat     ?'Tratamiento: '+trat   +'\n':'')
+    +(pron     ?'Pronóstico: '+pron    +'\n':'')
+    +(obsFin   ?'Obs. finales: '+obsFin+'\n':'');
+
+  var prompt = consultaActual + historial;
+
+  try {
+    var resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1800,
+        system: 'Sos un especialista en neurología veterinaria de alto nivel académico. Analizás casos clínicos para el Dr. Sergio Vignaroli (MN 1743, Rosario, Argentina). Tu análisis es PRIVADO — solo lo ve el veterinario, nunca el tutor.\n\nPara cada caso, analizá:\n1. Coherencia del diagnóstico y tratamiento propuesto\n2. Diagnósticos alternativos no considerados (si los hay)\n3. Banderas rojas o aspectos críticos del caso\n4. Estudios complementarios sugeridos (si corresponde)\n5. Revisión del plan terapéutico con evidencia actual\n6. Pronóstico basado en literatura científica\n7. Seguimiento recomendado\n\nCITAS OBLIGATORIAS: Incluí al menos 2-3 referencias científicas específicas que respalden tus afirmaciones principales. Formato: (Autor et al., Año. Título abreviado. Revista, Vol(N):páginas).\n\nRespondé en español rioplatense. Sé directo, preciso y clínico. Si el formulario tiene campos vacíos, trabajá con la información disponible sin inventar datos.',
+        messages: [{ role: 'user', content: 'Analizá este caso clínico en profundidad:\n\n'+prompt }]
+      })
+    });
+    if(!resp.ok){
+      var e2 = await resp.json().catch(function(){ return {}; });
+      out.textContent = 'Error API ('+(resp.status+')'+(e2.error&&e2.error.message?' — '+e2.error.message:''));
+    } else {
+      var data = await resp.json();
+      var reply = (data.content||[]).map(function(c){ return c.text||''; }).join('');
+      out.textContent = reply;
+    }
+  } catch(err) {
+    out.textContent = 'Error de red: ' + err.message;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Analizar caso con IA clínica';
+  }
+}
 
 async function saveRecord(){
   const pac=gv('f-paciente'),own=gv('f-owner');
@@ -7000,6 +7120,7 @@ function agregarEstudio(texto){
     _crisisData.forEach(function(s){
       var isSeen = _seenIds.indexOf(s.id) >= 0;
       var pat = (s.patients && s.patients.name) || 'Paciente';
+      var tutor = (s.profiles && s.profiles.full_name) || '';
       var fecha = new Date(s.started_at).toLocaleString('es-AR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
       var dur = s.duration_seconds ? Math.round(s.duration_seconds/60)+'min' : '?';
       var row = document.createElement('div');
@@ -7009,6 +7130,7 @@ function agregarEstudio(texto){
         +'<span style="font-weight:700;font-size:.84rem;color:#111;">'+(isSeen?'':'🔴 ')+pat+'</span>'
         +'<span style="font-size:.72rem;color:#6b7280;">'+fecha+'</span>'
         +'</div>'
+        +(tutor?'<div style="font-size:.74rem;color:#374151;margin-top:1px;">\ud83d\udc64 Tutor: '+tutor+'</div>':'')
         +'<div style="font-size:.76rem;color:#dc2626;margin-top:2px;">'+((s.ictal&&s.ictal.tipo)||'Convulsi\u00f3n')+' \u00b7 '+dur
         +(s.is_status?' \u00b7 \u26a0\ufe0f STATUS':'')+' </div>';
       row.addEventListener('click', function(){ window._crisisAbrirPaciente(pat); });
@@ -7046,10 +7168,11 @@ function agregarEstudio(texto){
         +'Tipo: '+tipo
         +(durMin?' · Duración: '+durMin+' min':'')
         +(s.is_status?' · ⚠️ STATUS EPILEPTICUS':'');
+      var tutorNombre=(s.profiles&&s.profiles.full_name)||'';
       var newRec={
         id:recId,
         espMedica:'neurologia',
-        owner:   base.owner   ||'',
+        owner:   base.owner   ||tutorNombre||'',
         paciente:base.paciente||nombre,
         especie: base.especie ||'',
         raza:    base.raza    ||(s.patients&&s.patients.breed)||'',
@@ -7085,7 +7208,7 @@ function agregarEstudio(texto){
       var sb = await initSB();
       var cutoff = new Date(Date.now() - 7*24*60*60*1000).toISOString();
       var res = await sb.from('seizures')
-        .select('id,started_at,ictal,duration_seconds,is_status,patients(name,breed)')
+        .select('id,started_at,ictal,duration_seconds,is_status,patients(name,breed),profiles!seizures_created_by_fkey(full_name)')
         .gte('started_at', cutoff)
         .order('started_at', {ascending:false})
         .limit(20);
@@ -7119,7 +7242,7 @@ function agregarEstudio(texto){
     if(rec && typeof loadRecord==='function') loadRecord(rec.id);
     nv_cerrar_panel();
   };
-  window._abrirPanelConectado = function(){ window.open('panel-conectado.html','_blank'); };
+  window._abrirPanelConectado = function(){ window.open('https://loquacious-pithivier-abf656.netlify.app/','_blank'); };
   window._marcarTodasVistas = function(){
     _seenIds = _crisisData.map(function(s){ return s.id; });
     _prevNuevas = 0;
