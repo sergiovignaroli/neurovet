@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -978,7 +977,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
           </button>
           <span style="font-size:.72rem;color:#9ca3af;">Lee el historial completo del paciente · Citas científicas incluidas</span>
         </div>
-        <div id="nv-ai-ficha-out" style="display:none;margin-top:12px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:14px 16px;font-size:.82rem;line-height:1.7;color:#0c4a6e;white-space:pre-wrap;word-break:break-word;max-height:600px;overflow-y:auto;"></div>
+        <!-- Panel colapsable: análisis + diálogo -->
+        <div id="nv-ai-ficha-wrap" style="display:none;margin-top:12px;border:1px solid #bae6fd;border-radius:10px;overflow:hidden;">
+          <div style="display:flex;justify-content:space-between;align-items:center;background:#0284c7;padding:7px 12px;">
+            <span style="font-size:.8rem;font-weight:600;color:#fff;">🤖 Análisis IA clínica</span>
+            <button onclick="nvAIFichaCerrar()" title="Cerrar" style="background:none;border:none;cursor:pointer;color:#fff;font-size:1.3rem;line-height:1;padding:0 4px;opacity:.8;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.8'">×</button>
+          </div>
+          <div id="nv-ai-ficha-out" style="background:#f0f9ff;padding:14px 16px;font-size:.82rem;line-height:1.7;color:#0c4a6e;white-space:pre-wrap;word-break:break-word;max-height:400px;overflow-y:auto;border-bottom:1px solid #e0f2fe;"></div>
+          <div id="nv-ai-chat-msgs" style="display:none;background:#fff;max-height:280px;overflow-y:auto;border-bottom:1px solid #e2e8f0;"></div>
+          <div id="nv-ai-chat-row" style="display:none;padding:8px 10px;background:#f8fafc;">
+            <div style="display:flex;gap:6px;align-items:center;">
+              <input id="nv-ai-chat-input" type="text" placeholder="Seguí consultando sobre el caso..." style="flex:1;padding:6px 10px;border:1px solid #cbd5e1;border-radius:7px;font-size:.82rem;outline:none;" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();nvAIChatEnviar();}">
+              <button onclick="nvAIChatEnviar()" class="btn btn-primary btn-sm" style="flex-shrink:0;">Enviar</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div><!-- /view-nueva-ficha -->
 
@@ -2107,21 +2120,30 @@ function deleteFileFromStorage(id){ return eliminarArchivoFirestore(id); }
 // CLEAR FORM — agregar reset de archivos y CDS
 
 // ── IA PRIVADA AL FINAL DE CONSULTA ─────────────────────────
+var _nvAIChatHistory = [];
+var _nvAISystemPrompt = 'Sos un especialista en neurología veterinaria de alto nivel académico. Analizás casos clínicos para el Dr. Sergio Vignaroli (MN 1743, Rosario, Argentina). Tu análisis es PRIVADO — solo lo ve el veterinario, nunca el tutor.\n\nPara cada caso, analizá:\n1. Coherencia del diagnóstico y tratamiento propuesto\n2. Diagnósticos alternativos no considerados (si los hay)\n3. Banderas rojas o aspectos críticos del caso\n4. Estudios complementarios sugeridos (si corresponde)\n5. Revisión del plan terapéutico con evidencia actual\n6. Pronóstico basado en literatura científica\n7. Seguimiento recomendado\n\nCITAS OBLIGATORIAS: Incluí al menos 2-3 referencias científicas específicas que respalden tus afirmaciones principales. Formato: (Autor et al., Año. Título abreviado. Revista, Vol(N):páginas).\n\nRespondé en español rioplatense. Sé directo, preciso y clínico. Si el formulario tiene campos vacíos, trabajá con la información disponible sin inventar datos.';
+
 async function nvAIFichaAnalizar(){
   var apiKey = localStorage.getItem('nv_apikey') || '';
-  if(!apiKey){
-    showToast('Configurá la clave API de Claude en Sincronización primero','error');
-    return;
-  }
-  var btn = document.getElementById('nv-ai-ficha-btn');
-  var out = document.getElementById('nv-ai-ficha-out');
-  if(!out) return;
+  if(!apiKey){ showToast('Configurá la clave API de Claude en Sincronización primero','error'); return; }
+  var btn      = document.getElementById('nv-ai-ficha-btn');
+  var wrap     = document.getElementById('nv-ai-ficha-wrap');
+  var out      = document.getElementById('nv-ai-ficha-out');
+  var chatMsgs = document.getElementById('nv-ai-chat-msgs');
+  var chatRow  = document.getElementById('nv-ai-chat-row');
+  if(!out||!wrap) return;
+
+  // Resetear diálogo previo
+  _nvAIChatHistory = [];
+  if(chatMsgs){ chatMsgs.innerHTML=''; chatMsgs.style.display='none'; }
+  if(chatRow) chatRow.style.display='none';
+
   btn.disabled = true;
   btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;animation:spin 1s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Analizando...';
-  out.style.display = 'block';
+  wrap.style.display = 'block';
   out.textContent = 'Analizando el caso clínico con evidencia científica...';
 
-  // Recopilar datos del formulario actual
+  // Recopilar campos del formulario
   var pacNombre = (document.getElementById('f-paciente')||{}).value || '';
   var especie   = (document.getElementById('f-especie')||{}).value  || '';
   var raza      = (document.getElementById('f-raza')||{}).value     || '';
@@ -2140,7 +2162,7 @@ async function nvAIFichaAnalizar(){
   var obsFin    = (document.getElementById('f-obs-fin')||{}).value  || '';
   var editId    = (document.getElementById('editing-id')||{}).value || '';
 
-  // Historial completo del paciente (hasta 10 consultas previas)
+  // Historial previo del paciente (hasta 10 consultas)
   var historial = '';
   if(pacNombre && window.records){
     var fichasPac = window.records.filter(function(r){
@@ -2171,38 +2193,102 @@ async function nvAIFichaAnalizar(){
     +(pron     ?'Pronóstico: '+pron    +'\n':'')
     +(obsFin   ?'Obs. finales: '+obsFin+'\n':'');
 
-  var prompt = consultaActual + historial;
+  _nvAIChatHistory = [{ role: 'user', content: 'Analizá este caso clínico en profundidad:\n\n'+consultaActual+historial }];
 
   try {
     var resp = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1800,
-        system: 'Sos un especialista en neurología veterinaria de alto nivel académico. Analizás casos clínicos para el Dr. Sergio Vignaroli (MN 1743, Rosario, Argentina). Tu análisis es PRIVADO — solo lo ve el veterinario, nunca el tutor.\n\nPara cada caso, analizá:\n1. Coherencia del diagnóstico y tratamiento propuesto\n2. Diagnósticos alternativos no considerados (si los hay)\n3. Banderas rojas o aspectos críticos del caso\n4. Estudios complementarios sugeridos (si corresponde)\n5. Revisión del plan terapéutico con evidencia actual\n6. Pronóstico basado en literatura científica\n7. Seguimiento recomendado\n\nCITAS OBLIGATORIAS: Incluí al menos 2-3 referencias científicas específicas que respalden tus afirmaciones principales. Formato: (Autor et al., Año. Título abreviado. Revista, Vol(N):páginas).\n\nRespondé en español rioplatense. Sé directo, preciso y clínico. Si el formulario tiene campos vacíos, trabajá con la información disponible sin inventar datos.',
-        messages: [{ role: 'user', content: 'Analizá este caso clínico en profundidad:\n\n'+prompt }]
-      })
+      headers: { 'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
+      body: JSON.stringify({ model:'claude-haiku-4-5-20251001', max_tokens:1800, system:_nvAISystemPrompt, messages:_nvAIChatHistory })
     });
     if(!resp.ok){
       var e2 = await resp.json().catch(function(){ return {}; });
-      out.textContent = 'Error API ('+(resp.status+')'+(e2.error&&e2.error.message?' — '+e2.error.message:''));
+      out.textContent = 'Error API ('+resp.status+')'+(e2.error&&e2.error.message?' — '+e2.error.message:'');
     } else {
       var data = await resp.json();
       var reply = (data.content||[]).map(function(c){ return c.text||''; }).join('');
+      _nvAIChatHistory.push({ role:'assistant', content:reply });
       out.textContent = reply;
+      // Habilitar diálogo
+      if(chatMsgs) chatMsgs.style.display='block';
+      if(chatRow)  chatRow.style.display='block';
+      setTimeout(function(){ var inp=document.getElementById('nv-ai-chat-input'); if(inp) inp.focus(); },150);
     }
   } catch(err) {
     out.textContent = 'Error de red: ' + err.message;
   } finally {
     btn.disabled = false;
-    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Analizar caso con IA clínica';
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Re-analizar';
   }
+}
+
+async function nvAIChatEnviar(){
+  var apiKey = localStorage.getItem('nv_apikey') || '';
+  if(!apiKey) return;
+  var input    = document.getElementById('nv-ai-chat-input');
+  var chatMsgs = document.getElementById('nv-ai-chat-msgs');
+  if(!input||!chatMsgs) return;
+  var msg = input.value.trim();
+  if(!msg) return;
+  input.value = '';
+  input.disabled = true;
+
+  // Burbuja del veterinario
+  var userBubble = document.createElement('div');
+  userBubble.style.cssText='padding:7px 11px;margin:7px 10px 2px 50px;background:#0284c7;color:#fff;border-radius:12px 12px 2px 12px;font-size:.81rem;line-height:1.5;word-break:break-word;';
+  userBubble.textContent = msg;
+  chatMsgs.appendChild(userBubble);
+
+  // Burbuja de espera
+  var waitBubble = document.createElement('div');
+  waitBubble.style.cssText='padding:7px 11px;margin:2px 50px 7px 10px;background:#f1f5f9;color:#64748b;border-radius:12px 12px 12px 2px;font-size:.81rem;font-style:italic;';
+  waitBubble.textContent = 'Escribiendo...';
+  chatMsgs.appendChild(waitBubble);
+  chatMsgs.scrollTop = chatMsgs.scrollHeight;
+
+  _nvAIChatHistory.push({ role:'user', content:msg });
+
+  try {
+    var resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
+      body: JSON.stringify({ model:'claude-haiku-4-5-20251001', max_tokens:1200, system:_nvAISystemPrompt, messages:_nvAIChatHistory })
+    });
+    if(!resp.ok){
+      var e3 = await resp.json().catch(function(){ return {}; });
+      waitBubble.textContent = 'Error: '+(e3.error&&e3.error.message?e3.error.message:resp.status);
+      waitBubble.style.color = '#dc2626';
+      _nvAIChatHistory.pop();
+    } else {
+      var data = await resp.json();
+      var reply = (data.content||[]).map(function(c){ return c.text||''; }).join('');
+      _nvAIChatHistory.push({ role:'assistant', content:reply });
+      waitBubble.style.cssText='padding:7px 11px;margin:2px 50px 7px 10px;background:#f1f5f9;color:#1e293b;border-radius:12px 12px 12px 2px;font-size:.81rem;line-height:1.6;white-space:pre-wrap;word-break:break-word;font-style:normal;';
+      waitBubble.textContent = reply;
+    }
+  } catch(err) {
+    waitBubble.textContent = 'Error: ' + err.message;
+    waitBubble.style.color = '#dc2626';
+    _nvAIChatHistory.pop();
+  } finally {
+    input.disabled = false;
+    input.focus();
+    chatMsgs.scrollTop = chatMsgs.scrollHeight;
+  }
+}
+
+function nvAIFichaCerrar(){
+  var wrap     = document.getElementById('nv-ai-ficha-wrap');
+  var out      = document.getElementById('nv-ai-ficha-out');
+  var chatMsgs = document.getElementById('nv-ai-chat-msgs');
+  var chatRow  = document.getElementById('nv-ai-chat-row');
+  var btn      = document.getElementById('nv-ai-ficha-btn');
+  if(wrap)     wrap.style.display='none';
+  if(out)      out.textContent='';
+  if(chatMsgs){ chatMsgs.innerHTML=''; chatMsgs.style.display='none'; }
+  if(chatRow)  chatRow.style.display='none';
+  _nvAIChatHistory = [];
+  if(btn) btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Analizar caso con IA clínica';
 }
 
 async function saveRecord(){
