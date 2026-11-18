@@ -115,6 +115,20 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .hist-patient{font-weight:600;font-size:.89rem;}
 .hist-reason{font-size:.77rem;color:var(--text-soft);margin-top:2px;max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .hist-actions{display:flex;gap:4px;flex-wrap:wrap;}
+/* ── TIMELINE CLÍNICO ── */
+.nv-tl-wrap{background:#f8fffe;border-left:1px solid #bbf7d0;border-right:1px solid #bbf7d0;border-bottom:1px solid var(--border-light);padding:6px 10px 4px;}
+.nv-tl-scroll{overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+.nv-tl-content{display:inline-block;min-width:100%;vertical-align:top;}
+.nv-tl-curve-row{height:52px;position:relative;}
+.nv-tl-curve-row svg{position:absolute;top:0;left:0;overflow:visible;pointer-events:none;}
+.nv-tl-nodes-row{display:flex;align-items:flex-start;padding:3px 0 2px;position:relative;}
+.nv-tl-node-col{display:flex;flex-direction:column;align-items:center;position:relative;z-index:1;margin:0 14px;cursor:default;min-width:44px;}
+.nv-tl-dot{width:13px;height:13px;border-radius:50%;border:2px solid #fff;flex-shrink:0;}
+.nv-tl-dot-verde{background:#16a34a;box-shadow:0 0 0 2px #86efac;}
+.nv-tl-dot-rojo{background:#dc2626;box-shadow:0 0 0 2px #fca5a5;}
+.nv-tl-dot-amarillo{background:#d97706;box-shadow:0 0 0 2px #fcd34d;}
+.nv-tl-lbl{font-size:.6rem;color:var(--text-soft);margin-top:3px;text-align:center;white-space:nowrap;line-height:1.2;}
+.nv-tl-title{font-size:.62rem;color:var(--text-soft);padding:0 2px 2px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;}
 .badge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:.69rem;font-weight:500;}
 .badge-neurologia{background:var(--teal-light);color:var(--teal-dark);}
 .badge-cardiologia{background:#dbeafe;color:#1d4ed8;}
@@ -2871,6 +2885,7 @@ function filterHist(){
           </div>
           <button class="btn btn-green btn-sm" onclick="newConsulta('${patKey.replace(/'/g,"\\'")}')">+ Consulta</button>
         </div>
+        ${rs.length>=2?nvTimelineHTML(rs,pac):''}
         ${rs.map(r=>`<div class="hist-item" style="border-radius:0;margin:0;">
           <div class="hist-date">${fd(r.fecha)}</div>
           <div class="hist-info">
@@ -2911,8 +2926,112 @@ function filterHist(){
       <div style="border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;height:6px;background:var(--surface2);"></div>
     </div>`;
   }).join('');
+  setTimeout(nvTimelineDraw, 60);
 }
 
+
+// ═══════════════════ TIMELINE CLÍNICO ═══════════════════
+function nvEstadoClin(r){
+  if(r.estadoClin)return r.estadoClin;
+  var mot=(r.motivo||'').toLowerCase();
+  var obs=(r.obsFin||'').toLowerCase();
+  var pron=(r.pron||'').toLowerCase();
+  if(/recaída|recaida|crisis|convuls|empeor|ataque|descompens|urgencia|shock|grave/.test(mot+' '+obs))return'rojo';
+  if(/favorable|bueno|excelente|muy bien/.test(pron))return'verde';
+  if(/estable|control|sin crisis|sin convuls|mejoría|mejoria|mejorando/.test(mot+' '+obs+' '+pron))return'verde';
+  return'amarillo';
+}
+
+function nvTimelineHTML(fichas,pacId){
+  if(!fichas||fichas.length<2)return'';
+  var sorted=fichas.slice().sort(function(a,b){return(a.fecha||'').localeCompare(b.fecha||'');});
+  var MESES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  var nodesHTML=sorted.map(function(r){
+    var est=nvEstadoClin(r);
+    var d=r.fecha?new Date(r.fecha+'T12:00:00'):null;
+    var lbl=d?MESES[d.getMonth()]+' '+(d.getFullYear()%100).toString().padStart(2,'0'):'—';
+    var tip=(r.fecha||'')+' · '+(r.motivo||'Sin motivo')+(r.dxDef?' · '+r.dxDef.slice(0,30):'');
+    return'<div class="nv-tl-node-col" data-estado="'+est+'" title="'+tip.replace(/"/g,'&quot;')+'">'+
+      '<div class="nv-tl-dot nv-tl-dot-'+est+'"></div>'+
+      '<div class="nv-tl-lbl">'+lbl+'</div>'+
+    '</div>';
+  }).join('');
+  var uid='nvtl'+(pacId||Date.now()).toString().replace(/[^a-z0-9]/gi,'_');
+  return'<div class="nv-tl-wrap">'+
+    '<div class="nv-tl-title">Evolución clínica</div>'+
+    '<div class="nv-tl-scroll"><div class="nv-tl-content">'+
+      '<div class="nv-tl-curve-row"><svg id="'+uid+'" class="nv-tl-svg" aria-hidden="true">'+
+        '<defs><linearGradient id="ag'+uid+'" x1="0" y1="0" x2="0" y2="52" gradientUnits="userSpaceOnUse">'+
+          '<stop offset="0%" stop-color="#16a34a" stop-opacity=".2"/>'+
+          '<stop offset="45%" stop-color="#d97706" stop-opacity=".06"/>'+
+          '<stop offset="100%" stop-color="#dc2626" stop-opacity=".2"/>'+
+        '</linearGradient></defs>'+
+      '</svg></div>'+
+      '<div class="nv-tl-nodes-row">'+
+        '<div style="position:absolute;top:8px;left:0;right:0;height:2px;background:var(--border-light);z-index:0;"></div>'+
+        nodesHTML+
+      '</div>'+
+    '</div></div>'+
+  '</div>';
+}
+
+function nvTimelineDraw(){
+  document.querySelectorAll('.nv-tl-svg').forEach(function(svg){
+    var wrap=svg.closest('.nv-tl-wrap');
+    if(!wrap)return;
+    var cols=wrap.querySelectorAll('.nv-tl-node-col');
+    if(cols.length<2)return;
+    var ns='http://www.w3.org/2000/svg';
+    var H=52;
+    var EY={verde:10,amarillo:28,rojo:46};
+    var ECOL={verde:'#16a34a',amarillo:'#d97706',rojo:'#dc2626'};
+    var scrollEl=svg.closest('.nv-tl-scroll');
+    var cRect=svg.closest('.nv-tl-content').getBoundingClientRect();
+    var pts=[];
+    cols.forEach(function(col){
+      var dot=col.querySelector('.nv-tl-dot');
+      var est=col.dataset.estado||'amarillo';
+      var dr=dot.getBoundingClientRect();
+      var cx=dr.left-cRect.left+(scrollEl?scrollEl.scrollLeft:0)+dr.width/2;
+      pts.push({x:cx,y:EY[est]!==undefined?EY[est]:28,estado:est});
+    });
+    var W=Math.max.apply(null,pts.map(function(p){return p.x;}))+50;
+    svg.setAttribute('width',W);svg.setAttribute('height',H);
+    svg.querySelectorAll('.nvd').forEach(function(e){e.remove();});
+    var gid='ag'+svg.id;
+    function smD(ps){
+      var d='M '+ps[0].x.toFixed(1)+' '+ps[0].y.toFixed(1);
+      for(var i=0;i<ps.length-1;i++){
+        var p0=ps[Math.max(0,i-1)],p1=ps[i],p2=ps[i+1],p3=ps[Math.min(ps.length-1,i+2)];
+        var c1x=p1.x+(p2.x-p0.x)/5,c1y=p1.y+(p2.y-p0.y)/5;
+        var c2x=p2.x-(p3.x-p1.x)/5,c2y=p2.y-(p3.y-p1.y)/5;
+        d+=' C '+c1x.toFixed(1)+' '+c1y.toFixed(1)+' '+c2x.toFixed(1)+' '+c2y.toFixed(1)+' '+p2.x.toFixed(1)+' '+p2.y.toFixed(1);
+      }
+      return d;
+    }
+    var curD=smD(pts);
+    var aP=document.createElementNS(ns,'path');
+    aP.setAttribute('d',curD+' L '+pts[pts.length-1].x.toFixed(1)+' '+H+' L '+pts[0].x.toFixed(1)+' '+H+' Z');
+    aP.setAttribute('fill','url(#'+gid+')');aP.setAttribute('class','nvd');svg.appendChild(aP);
+    for(var s=0;s<pts.length-1;s++){
+      var p0=pts[Math.max(0,s-1)],p1=pts[s],p2=pts[s+1],p3=pts[Math.min(pts.length-1,s+2)];
+      var c1x=p1.x+(p2.x-p0.x)/5,c1y=p1.y+(p2.y-p0.y)/5;
+      var c2x=p2.x-(p3.x-p1.x)/5,c2y=p2.y-(p3.y-p1.y)/5;
+      var sP=document.createElementNS(ns,'path');
+      sP.setAttribute('d','M '+p1.x.toFixed(1)+' '+p1.y.toFixed(1)+' C '+c1x.toFixed(1)+' '+c1y.toFixed(1)+' '+c2x.toFixed(1)+' '+c2y.toFixed(1)+' '+p2.x.toFixed(1)+' '+p2.y.toFixed(1));
+      sP.setAttribute('fill','none');sP.setAttribute('stroke',ECOL[pts[s+1].estado]||'#94a3b8');
+      sP.setAttribute('stroke-width','2');sP.setAttribute('stroke-linecap','round');sP.setAttribute('class','nvd');
+      svg.appendChild(sP);
+    }
+    pts.forEach(function(pt){
+      var c=document.createElementNS(ns,'circle');
+      c.setAttribute('cx',pt.x.toFixed(1));c.setAttribute('cy',pt.y.toFixed(1));
+      c.setAttribute('r','4.5');c.setAttribute('fill',ECOL[pt.estado]||'#94a3b8');
+      c.setAttribute('stroke','white');c.setAttribute('stroke-width','2');c.setAttribute('class','nvd');
+      svg.appendChild(c);
+    });
+  });
+}
 
 // ═══════════════════ AGENDA ═══════════════════
 function getProxTurnos(){
