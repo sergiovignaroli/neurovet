@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -122,13 +123,22 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .nv-tl-curve-row{height:52px;position:relative;}
 .nv-tl-curve-row svg{position:absolute;top:0;left:0;overflow:visible;pointer-events:none;}
 .nv-tl-nodes-row{display:flex;align-items:flex-start;padding:3px 0 2px;position:relative;}
-.nv-tl-node-col{display:flex;flex-direction:column;align-items:center;position:relative;z-index:1;margin:0 14px;cursor:default;min-width:44px;}
+.nv-tl-node-col{display:flex;flex-direction:column;align-items:center;position:relative;z-index:1;margin:0 10px;cursor:default;min-width:130px;}
 .nv-tl-dot{width:13px;height:13px;border-radius:50%;border:2px solid #fff;flex-shrink:0;}
 .nv-tl-dot-verde{background:#16a34a;box-shadow:0 0 0 2px #86efac;}
 .nv-tl-dot-rojo{background:#dc2626;box-shadow:0 0 0 2px #fca5a5;}
 .nv-tl-dot-amarillo{background:#d97706;box-shadow:0 0 0 2px #fcd34d;}
 .nv-tl-lbl{font-size:.6rem;color:var(--text-soft);margin-top:3px;text-align:center;white-space:nowrap;line-height:1.2;}
 .nv-tl-title{font-size:.62rem;color:var(--text-soft);padding:0 2px 2px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;}
+.nv-tl-connector{width:2px;height:10px;background:#d1d5db;margin:0 auto;flex-shrink:0;}
+.nv-tl-card{background:#fff;border:1px solid #e5e7eb;border-left:3px solid #94a3b8;border-radius:0 6px 6px 0;padding:5px 8px;width:124px;box-shadow:0 1px 4px rgba(0,0,0,.06);text-align:left;cursor:default;}
+.nv-tl-card-date{font-size:.58rem;color:#9ca3af;margin-bottom:2px;line-height:1;}
+.nv-tl-card-badge{display:inline-block;padding:1px 6px;border-radius:10px;font-size:.6rem;font-weight:700;margin-bottom:3px;line-height:1.6;}
+.nv-tl-card-badge-verde{background:#dcfce7;color:#15803d;}
+.nv-tl-card-badge-rojo{background:#fee2e2;color:#b91c1c;}
+.nv-tl-card-badge-amarillo{background:#fef3c7;color:#92400e;}
+.nv-tl-card-trat{font-size:.63rem;font-weight:700;color:#111827;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.nv-tl-card-desc{font-size:.59rem;color:#6b7280;margin-top:1px;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
 .badge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:.69rem;font-weight:500;}
 .badge-neurologia{background:var(--teal-light);color:var(--teal-dark);}
 .badge-cardiologia{background:#dbeafe;color:#1d4ed8;}
@@ -2942,18 +2952,41 @@ function nvEstadoClin(r){
   return'amarillo';
 }
 
+function nvBadgeTipo(r,isFirst,est){
+  var mot=(r.motivo||'').toLowerCase();
+  if(isFirst) return (r.trat)?'Inicio trat.':'Inicio';
+  if(est==='rojo'){
+    if(/crisis|convuls|ataque|status/.test(mot)) return'Crisis';
+    return'Recaída';
+  }
+  if(est==='verde') return'Estable';
+  return'Control';
+}
+
 function nvTimelineHTML(fichas,pacId){
   if(!fichas||fichas.length<2)return'';
   var sorted=fichas.slice().sort(function(a,b){return(a.fecha||'').localeCompare(b.fecha||'');});
   var MESES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-  var nodesHTML=sorted.map(function(r){
+  var ECOL_B={verde:'#16a34a',amarillo:'#d97706',rojo:'#dc2626'};
+  var nodesHTML=sorted.map(function(r,i){
     var est=nvEstadoClin(r);
     var d=r.fecha?new Date(r.fecha+'T12:00:00'):null;
     var lbl=d?MESES[d.getMonth()]+' '+(d.getFullYear()%100).toString().padStart(2,'0'):'—';
-    var tip=(r.fecha||'')+' · '+(r.motivo||'Sin motivo')+(r.dxDef?' · '+r.dxDef.slice(0,30):'');
-    return'<div class="nv-tl-node-col" data-estado="'+est+'" title="'+tip.replace(/"/g,'&quot;')+'">'+
+    var fullDate=d?d.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'}):(r.fecha||'');
+    var badge=nvBadgeTipo(r,i===0,est);
+    var tratTxt=((r.trat||'').trim()||(r.motivo||'').trim()||'Sin datos').slice(0,80).replace(/</g,'&lt;');
+    var descTxt=(r.trat?(r.motivo||r.dxDef||r.obsFin||''):(r.dxDef||r.obsFin||'')).trim().slice(0,70).replace(/</g,'&lt;');
+    var bc=ECOL_B[est]||'#94a3b8';
+    var tip=fullDate+' · '+((r.motivo||'').slice(0,40)).replace(/"/g,'&quot;');
+    return'<div class="nv-tl-node-col" data-estado="'+est+'" title="'+tip+'">'+
       '<div class="nv-tl-dot nv-tl-dot-'+est+'"></div>'+
-      '<div class="nv-tl-lbl">'+lbl+'</div>'+
+      '<div class="nv-tl-connector"></div>'+
+      '<div class="nv-tl-card" style="border-left-color:'+bc+';">'+
+        '<div class="nv-tl-card-date">'+lbl+'</div>'+
+        '<span class="nv-tl-card-badge nv-tl-card-badge-'+est+'">'+badge+'</span>'+
+        '<div class="nv-tl-card-trat">'+tratTxt+'</div>'+
+        (descTxt?'<div class="nv-tl-card-desc">'+descTxt+'</div>':'')+
+      '</div>'+
     '</div>';
   }).join('');
   var uid='nvtl'+(pacId||Date.now()).toString().replace(/[^a-z0-9]/gi,'_');
@@ -2968,7 +3001,6 @@ function nvTimelineHTML(fichas,pacId){
         '</linearGradient></defs>'+
       '</svg></div>'+
       '<div class="nv-tl-nodes-row">'+
-        '<div style="position:absolute;top:8px;left:0;right:0;height:2px;background:var(--border-light);z-index:0;"></div>'+
         nodesHTML+
       '</div>'+
     '</div></div>'+
@@ -7160,7 +7192,7 @@ function agregarEstudio(texto){
   var SB_URL = 'https://cnbovfeifekyyyyaktbl.supabase.co';
   var SB_KEY = 'sb_publishable_x0ozgxBWKOlTFCKxHtfWVQ_2M1p-fC4';
   var _sbClient  = null;
-  var _seenIds   = [];  // Solo en sesión — cada apertura muestra crisis recientes
+  var _seenIds   = (function(){try{return JSON.parse(localStorage.getItem('nv4_crisis_seen')||'[]');}catch(e){return[];}})();
   var _panelOpen = false;
   var _crisisData= [];
   var _prevNuevas= -1;  // -1 = aún no se hizo el primer poll
@@ -7338,7 +7370,13 @@ function agregarEstudio(texto){
         +(tutor?'<div style="font-size:.74rem;color:#374151;margin-top:1px;">\ud83d\udc64 Tutor: '+tutor+'</div>':'')
         +'<div style="font-size:.76rem;color:#dc2626;margin-top:2px;">'+((s.ictal&&s.ictal.tipo)||'Convulsi\u00f3n')+' \u00b7 '+dur
         +(s.is_status?' \u00b7 \u26a0\ufe0f STATUS':'')+' </div>';
-      row.addEventListener('click', function(){ window._crisisAbrirPaciente(pat); });
+      row.addEventListener('click', function(){
+        if(_seenIds.indexOf(s.id)<0){
+          _seenIds.push(s.id);
+          try{localStorage.setItem('nv4_crisis_seen',JSON.stringify(_seenIds));}catch(e){}
+        }
+        window._crisisAbrirPaciente(pat);
+      });
       list.appendChild(row);
     });
   }
@@ -7442,14 +7480,26 @@ function agregarEstudio(texto){
 
   // ── Globales ────────────────────────────────────────────────
   window._crisisAbrirPaciente = function(nombre){
-    var records = window.records || [];
-    var rec = records.find(function(r){ return r.paciente && r.paciente.toLowerCase()===nombre.toLowerCase(); });
-    if(rec && typeof loadRecord==='function') loadRecord(rec.id);
     nv_cerrar_panel();
+    var recs = window.records || [];
+    var rec = recs.find(function(r){ return r.paciente && r.paciente.toLowerCase()===nombre.toLowerCase(); });
+    if(rec && typeof loadRecord==='function'){
+      loadRecord(rec.id);
+    } else if(typeof navigate==='function'){
+      navigate('historial');
+      setTimeout(function(){
+        var inp=document.getElementById('hist-search');
+        if(inp){ inp.value=nombre; inp.dispatchEvent(new Event('input')); }
+      },250);
+    }
   };
-  window._abrirPanelConectado = function(){ window.open('https://loquacious-pithivier-abf656.netlify.app/','_blank'); };
+  window._abrirPanelConectado = function(){
+    nv_cerrar_panel();
+    if(typeof navigate==='function') navigate('historial');
+  };
   window._marcarTodasVistas = function(){
     _seenIds = _crisisData.map(function(s){ return s.id; });
+    try{ localStorage.setItem('nv4_crisis_seen', JSON.stringify(_seenIds)); }catch(e){}
     _prevNuevas = 0;
     updateBadge(0);
     renderCrisisPanel();
